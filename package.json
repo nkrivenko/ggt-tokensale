@@ -1,0 +1,51 @@
+{
+  "name": "ggt-crowdsale",
+  "version": "1.0.0",
+  "description": "Godji Game token crowdsale",
+  "main": "index.js",
+  "scripts": {
+    "ci-coverage": "./.circleci/start_dev_node_and_run_tests.sh run coverage",
+    "ci-test": "./.circleci/start_dev_node_and_run_tests.sh test",
+    "test": "./node_modules/.bin/truffle test",
+    "coverage": "./node_modules/.bin/truffle run coverage --network development",
+    "deploy-testnet": "./node_modules/.bin/truffle migrate --network testnet",
+    "lint": "./node_modules/.bin/solhint -f table contracts/**/*.sol"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/nkrivenko/ggt-tokensale.git"
+  },
+  "keywords": [
+    "GGT",
+    "BEP20",
+    "Tokensale"
+  ],
+  "author": "Nikolai Krivenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nkrivenko/ggt-tokensale/issues"
+  },
+  "homepage": "https://github.com/nkrivenko/ggt-tokensale#readme",
+  "dependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "@babel/register": "^7.7.4",
+    "@openzeppelin/contracts": "^2.5.1",
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@openzeppelin/truffle-upgrades": "^1.9.1",
+    "@truffle/hdwallet-provider": "^1.0.37",
+    "truffle": "^5.4.16"
+  },
+  "devDependencies": {
+    "@codechecks/client": "^0.1.12",
+    "@smartdec/smartcheck": "^2.0.1",
+    "chai-as-promised": "^7.1.1",
+    "chai-bn": "^0.3.0",
+    "codecov": "^3.8.3",
+    "eth-gas-reporter": "^0.2.22",
+    "ethlint": "^0.0.0",
+    "solhint": "^1.0.10",
+    "solidity-coverage": "^0.7.17"
+  }
+}

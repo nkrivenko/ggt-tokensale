@@ -1,0 +1,82 @@
+version: 2
+
+aliases:
+  - &defaults
+    docker:
+      - image: circleci/node:14.17.6
+
+  - &cache_key_node_modules
+    key: v1-node_modules-{{ checksum "package-lock.json" }}
+
+jobs:
+  dependencies:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *cache_key_node_modules
+      - run:
+          name: Install npm dependencies
+          command: |
+            if [ ! -d node_modules ]; then
+              npm ci
+            fi
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+            - build
+      - save_cache:
+          paths:
+            - node_modules
+          <<: *cache_key_node_modules
+
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Unit tests
+          command: npm run ci-test
+    environment:
+      CI: "true"
+
+  coverage:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Unit tests with coverage report
+          command: |
+            export CODECOV_TOKEN=$COVERAGE_TOKEN
+            npm run coverage
+            bash <(curl -s https://codecov.io/bash)
+  
+  lint:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Lint code
+          command: npm run lint
+
+workflows:
+  version: 2
+  everything:
+    jobs:
+      - dependencies
+      - lint:
+          requires:
+            - dependencies
+      - test:
+          requires:
+            - lint
+      - coverage:
+          requires:
+            - lint

@@ -1,0 +1,28 @@
+{
+    "extends": "solhint:recommended",
+    "rules": {
+        "no-complex-fallback": "warn",
+        "indent": [
+            "error",
+            4
+        ],
+        "quotes": [
+            "error",
+            "double"
+        ],
+        "max-line-length": [
+            "error",
+            120
+        ],
+        "avoid-throw": false,
+        "avoid-suicide": "error",
+        "avoid-sha3": "warn",
+        "no-unused-vars": "error",
+        "reason-string": [
+            "error", {"maxLength": 50}
+        ],
+        "mark-callable-contracts": "error",
+        "private-line-leading-underscore": "error",
+        "func-order": "error"
+    }
+}
