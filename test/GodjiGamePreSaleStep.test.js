@@ -1,5 +1,6 @@
 const GodjiGamePreSaleStep = artifacts.require("GodjiGamePreSaleStep");
 const ERC20 = artifacts.require("StubERC20Token");
+const Oracle = artifacts.require("BinanceOracleImpl");
 
 import { expectRevert, time } from "@openzeppelin/test-helpers";
 
@@ -21,7 +22,8 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
   beforeEach(async function () {
     this.token = await ERC20.new();
-    this.crowdsale = await GodjiGamePreSaleStep.new(rate, wallet, this.token.address, owner);
+    this.oracle = await Oracle.new();
+    this.crowdsale = await GodjiGamePreSaleStep.new(rate, wallet, this.token.address, owner, this.oracle.address);
   });
 
   it('should create a crowdsale contract', async function () {
