@@ -6,8 +6,9 @@ import "../OnlyOwnerPausableCrowdsale.sol";
 
 
 contract OnlyOwnerPausableCrowdsaleImpl is OnlyOwnerPausableCrowdsale {
-    constructor(uint256 rate, address payable wallet, IERC20 token, address owner_)
-        OnlyOwnerPausableCrowdsale(owner_)
-        Crowdsale(rate, wallet, token) public {
+
+    /* solhint-disable no-empty-blocks */
+    constructor(uint256 rate, address payable wallet, IERC20 token, address owner_) public
+        OnlyOwnerPausableCrowdsale(owner_) Crowdsale(rate, wallet, token) {
     }
 }

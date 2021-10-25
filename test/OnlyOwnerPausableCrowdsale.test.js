@@ -10,7 +10,7 @@ require('chai')
   .use(require('chai-bn')(BN))
   .should();
 
-contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet]) {
+contract("OnlyOwnerPausableCrowdsale", function ([funder, owner, user, fundingWallet]) {
 
     const RATE = new BN("1");
 
