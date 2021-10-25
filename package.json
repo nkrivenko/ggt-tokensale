@@ -40,6 +40,12 @@
   "devDependencies": {
     "@codechecks/client": "^0.1.12",
     "@smartdec/smartcheck": "^2.0.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-register": "^6.26.0",
     "chai-as-promised": "^7.1.1",
     "chai-bn": "^0.3.0",
     "codecov": "^3.8.3",
