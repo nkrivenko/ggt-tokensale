@@ -2,7 +2,7 @@
 pragma solidity 0.5.17;
 
 import "@openzeppelin/contracts/ownership/Ownable.sol";
-import "../OnlyOwnerPausableCrowdsale.sol";
+import "../crowdsale/OnlyOwnerPausableCrowdsale.sol";
 
 
 contract OnlyOwnerPausableCrowdsaleImpl is OnlyOwnerPausableCrowdsale {

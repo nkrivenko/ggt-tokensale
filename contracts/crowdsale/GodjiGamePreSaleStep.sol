@@ -12,6 +12,7 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
     using SafeMath for uint256;
 
+    uint256 private constant BNBBUSD_DECIMALS = 10 ** 18;
     BinanceOracle private _binanceOracle;
 
     event Tokens(uint256 tokens);
@@ -26,6 +27,6 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
         uint256 bnbbusd = _binanceOracle.getPrice();
         uint256 ggtbusd = rate();
 
-        return weiAmount.mul(bnbbusd).div(ggtbusd).div(10 ** 18);
+        return weiAmount.mul(bnbbusd).div(ggtbusd).div(BNBBUSD_DECIMALS);
     }
 }
