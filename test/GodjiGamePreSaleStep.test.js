@@ -2,7 +2,7 @@ const GodjiGamePreSaleStep = artifacts.require("GodjiGamePreSaleStep");
 const ERC20 = artifacts.require("StubERC20Token");
 const Oracle = artifacts.require("BinanceOracleImpl");
 
-import { expectRevert, time } from "@openzeppelin/test-helpers";
+import { expectRevert, time, ether } from "@openzeppelin/test-helpers";
 
 const BN = web3.utils.BN;
 
@@ -13,8 +13,10 @@ require('chai')
 
 contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet]) {
 
-  const rate = new BN("1");
+  const RATE = new BN("100");
   const wallet = fundingWallet;
+  const BNBBUSD = ether('522');
+  const SINGLE_ETHER = ether('1');
 
   before(async function () {
     await time.advanceBlock();
@@ -22,15 +24,19 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
   beforeEach(async function () {
     this.token = await ERC20.new();
-    this.oracle = await Oracle.new();
-    this.crowdsale = await GodjiGamePreSaleStep.new(rate, wallet, this.token.address, owner, this.oracle.address);
+    this.oracle = await Oracle.new(BNBBUSD);
+    this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner, this.oracle.address);
+
+    this.token = await ERC20.at(await this.crowdsale.token());
+
+    await this.token.addMinter(this.crowdsale.address);
   });
 
   it('should create a crowdsale contract', async function () {
     this.token.should.exist;
     this.crowdsale.should.exist;
 
-    rate.should.be.bignumber.equal(await this.crowdsale.rate());
+    RATE.should.be.bignumber.equal(await this.crowdsale.rate());
 
     wallet.should.be.equal(await this.crowdsale.wallet());
     this.token.address.should.be.equal(await this.crowdsale.token());
@@ -92,4 +98,13 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
     });
   });
 
+  describe('should transfer tokens', function() {
+    it('should transfer the token amount from requirements', async function () {
+      await this.crowdsale.send(SINGLE_ETHER, {from: user});
+
+      const balanceOfUser = await this.token.balanceOf(user);
+
+      balanceOfUser.should.be.bignumber.equal(SINGLE_ETHER.mul(BNBBUSD).div(RATE).div(SINGLE_ETHER));
+    });
+  })
 });

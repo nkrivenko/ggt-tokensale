@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 interface IStdReference {
 
+
     struct ReferenceData {
         uint256 rate;
         uint256 lastUpdatedBase;
@@ -21,22 +22,17 @@ interface IStdReference {
         returns (ReferenceData[] memory);
 }
 
-contract BinanceOracle {
-    IStdReference private ref;
 
-    uint256 public price;
+contract BinanceOracle {
+
+    IStdReference private ref;
 
     constructor(IStdReference _ref) public {
         ref = _ref;
     }
 
     function getPrice() external view returns (uint256) {
-        IStdReference.ReferenceData memory data = ref.getReferenceData("BNB","BUSD");
+        IStdReference.ReferenceData memory data = ref.getReferenceData("BNB", "BUSD");
         return data.rate;
-    }
-
-    function savePrice(string calldata base, string calldata quote) external {
-        IStdReference.ReferenceData memory data = ref.getReferenceData(base,quote);
-        price = data.rate;
     }
 }
