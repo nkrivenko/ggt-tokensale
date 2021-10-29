@@ -17,6 +17,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
   const wallet = fundingWallet;
   const BNBBUSD = ether('522');
   const SINGLE_ETHER = ether('1');
+  const BONUS_COEFF_PERCENT = new BN("120");
 
   before(async function () {
     await time.advanceBlock();
@@ -25,25 +26,58 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
   beforeEach(async function () {
     this.token = await ERC20.new();
     this.oracle = await Oracle.new(BNBBUSD);
-    this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner, this.oracle.address);
+    this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner, this.oracle.address, BONUS_COEFF_PERCENT);
 
     this.token = await ERC20.at(await this.crowdsale.token());
 
     await this.token.addMinter(this.crowdsale.address);
   });
 
-  it('should create a crowdsale contract', async function () {
-    this.token.should.exist;
-    this.crowdsale.should.exist;
 
-    RATE.should.be.bignumber.equal(await this.crowdsale.rate());
-
-    wallet.should.be.equal(await this.crowdsale.wallet());
-    this.token.address.should.be.equal(await this.crowdsale.token());
-    owner.should.be.equal(await this.crowdsale.owner());
+  describe('Contract creation', function() {
+    it('should create a crowdsale contract', async function () {
+      this.token.should.exist;
+      this.crowdsale.should.exist;
+  
+      RATE.should.be.bignumber.equal(await this.crowdsale.rate());
+  
+      wallet.should.be.equal(await this.crowdsale.wallet());
+      this.token.address.should.be.equal(await this.crowdsale.token());
+      owner.should.be.equal(await this.crowdsale.owner());
+    });
+  
+    it('should revert if trying to create the token with zero bonus coefficient', async function() {
+      await expectRevert(GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner, this.oracle.address, new BN("0")),
+        "GodjiGamePreSaleStep: bonusCoeffPercent must be positive number");
+    });
   });
 
-  describe('should be ownable and allow to transfer ownership', function () {
+  describe('Receive BNBs and transfer tokens', function() {
+    it('should transfer the token amount from requirements', async function () {
+      await this.crowdsale.send(SINGLE_ETHER, {from: user});
+
+      const balanceOfUser = await this.token.balanceOf(user);
+
+      balanceOfUser.should.be.bignumber.equal(SINGLE_ETHER.mul(BNBBUSD).mul(BONUS_COEFF_PERCENT).div(RATE).div(SINGLE_ETHER).div(new BN(100)));
+    });
+
+    it('should change the bonus coefficient', async function () {
+      const newBonusCoeff = BONUS_COEFF_PERCENT.add(new BN("10"));
+      await this.crowdsale.setBonusCoeff(newBonusCoeff, {from: owner});
+
+      await this.crowdsale.send(SINGLE_ETHER, {from: user});
+
+      const balanceOfUser = await this.token.balanceOf(user);
+
+      balanceOfUser.should.be.bignumber.equal(SINGLE_ETHER.mul(BNBBUSD).mul(newBonusCoeff).div(RATE).div(SINGLE_ETHER).div(new BN(100)));
+    });
+
+    it('should revert if trying to change the bonus coefficient not by owner', async function () {
+      await expectRevert(this.crowdsale.setBonusCoeff(BONUS_COEFF_PERCENT.add(new BN("10"))), "Ownable: caller is not the owner");
+    });
+  });
+
+  describe('Be ownable and allow to transfer ownership', function () {
     it('should get the owner', async function () {
       owner.should.be.equal(await this.crowdsale.owner());
     });
@@ -59,7 +93,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
     });
   });
 
-  describe('should be pausable by owner', function () {
+  describe('Be pausable by owner', function () {
     it('should pause if not paused and called by owner', async function () {
       (await this.crowdsale.paused()).should.equal(false);
 
@@ -97,14 +131,4 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
       await expectRevert(this.crowdsale.unpause({ from: user }), "PauserRole: caller does not have the Pauser role");
     });
   });
-
-  describe('should transfer tokens', function() {
-    it('should transfer the token amount from requirements', async function () {
-      await this.crowdsale.send(SINGLE_ETHER, {from: user});
-
-      const balanceOfUser = await this.token.balanceOf(user);
-
-      balanceOfUser.should.be.bignumber.equal(SINGLE_ETHER.mul(BNBBUSD).div(RATE).div(SINGLE_ETHER));
-    });
-  })
 });
