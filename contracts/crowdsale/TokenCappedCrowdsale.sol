@@ -45,9 +45,10 @@ contract TokenCappedCrowdsale is MintedCrowdsale {
      * and _preValidatePurchase is a view function.
      */
     function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
-        require(_tokensMinted.add(tokenAmount) <= _tokenCap, "TokenCappedCrowdsale: token cap exceeded");
-        super._processPurchase(beneficiary, tokenAmount);
+        _tokensMinted = _tokensMinted.add(tokenAmount);
 
-        _tokensMinted += tokenAmount;
+        require(_tokensMinted <= _tokenCap, "TokenCappedCrowdsale: token cap exceeded");
+
+        super._processPurchase(beneficiary, tokenAmount);
     }
 }
