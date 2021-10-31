@@ -2,13 +2,17 @@
 pragma solidity 0.5.17;
 
 import "@openzeppelin/contracts/crowdsale/emission/MintedCrowdsale.sol";
+import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OnlyOwnerPausableCrowdsale.sol";
+import "./OpeningTimeCrowdsale.sol";
+import "./TokenCappedCrowdsale.sol";
 import "../price/BinanceOracle.sol";
 
 
-contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrowdsale {
+contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrowdsale,
+    OpeningTimeCrowdsale, TokenCappedCrowdsale, CappedCrowdsale {
 
     using SafeMath for uint256;
 
@@ -22,8 +26,10 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     event NewBonusCoefficient(uint256 bonusCoeff);
 
     constructor(uint256 rate, address payable wallet, IERC20 token, address owner_, BinanceOracle binanceOracle,
-        uint256 bonusCoeffPercent_) public 
-    OnlyOwnerPausableCrowdsale(owner_) Crowdsale(rate, wallet, token) {
+        uint256 bonusCoeffPercent_, uint256 startTimeUnix, uint256 cap_, uint256 tokenCap_) public 
+        OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix)
+        CappedCrowdsale(cap_) TokenCappedCrowdsale(tokenCap_) Crowdsale(rate, wallet, token) {
+
         require(bonusCoeffPercent_ > 0, "GodjiGamePreSaleStep: bonusCoeffPercent must be positive number");
 
         _binanceOracle = binanceOracle;

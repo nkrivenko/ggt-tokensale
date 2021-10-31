@@ -1,7 +1,7 @@
 const OnlyOwnerPausableCrowdsale = artifacts.require("OnlyOwnerPausableCrowdsaleImpl");
-const ERC20 = artifacts.require("StubERC20Token");
+const ERC20 = artifacts.require("GGTToken");
 
-import { expectRevert, time } from "@openzeppelin/test-helpers";
+import { expectRevert, ether } from "@openzeppelin/test-helpers";
 
 const BN = web3.utils.BN;
 
@@ -14,9 +14,15 @@ contract("OnlyOwnerPausableCrowdsale", function ([funder, owner, user, fundingWa
 
     const RATE = new BN("1");
 
+    const TOKEN_NAME = "Godji Game Token";
+	const TOKEN_SYMBOL = "GGT";
+    const TOKEN_CAP = ether("50000000");
+
     beforeEach(async function() {
-        this.token = await ERC20.new();
+        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
         this.crowdsale = await OnlyOwnerPausableCrowdsale.new(RATE, fundingWallet, this.token.address, owner);
+
+        await this.token.addMinter(this.crowdsale.address, { from: owner });
     });
 
     it('should revert if trying to add a pauser', async function() {

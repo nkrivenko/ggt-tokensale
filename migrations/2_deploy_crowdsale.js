@@ -13,7 +13,13 @@ module.exports = async function(deployer, network, accounts) {
 
   const oracle = await Oracle.deployed();
   const token = await Token.deployed();
-  await deployer.deploy(GGTPreSale, new BN("1"), accounts[0], token.address, accounts[0], oracle.address, new BN("100"));
+
+  const openDate = +(new Date('2021-10-30T19:24:00'));
+
+  const cap = new BN(toWei(new BN(50), 'ether'));
+  const tokenCap = new BN(toWei(new BN(250), 'ether'));
+
+  await deployer.deploy(GGTPreSale, new BN("1"), accounts[0], token.address, accounts[0], oracle.address, new BN("100"), openDate, cap, tokenCap);
 
   const presale = await GGTPreSale.deployed();
   await token.addMinter(presale.address, {from: accounts[0]});

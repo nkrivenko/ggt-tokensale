@@ -15,7 +15,8 @@ module.exports = {
       port: 8545,
       network_id: "*",
       gas: 4698712,
-      gasPrice: 25000000000
+      gasPrice: 25000000000,
+      defaultBalanceEther: 10000
     },
 
     testnet: {

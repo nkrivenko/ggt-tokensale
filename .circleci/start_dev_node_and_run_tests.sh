@@ -18,7 +18,7 @@ ganache_running() {
 }
 
 start_ganache() {
-  npx ganache-cli --gasLimit 0x1fffffffffffff --gasPrice 0x1 --port "$ganache_port" --accounts 70 > /dev/null &
+  npx ganache-cli --gasLimit 0x1fffffffffffff --gasPrice 0x1 --port "$ganache_port" -e 10000 --accounts 70 > /dev/null &
   ganache_pid=$!
 
   echo "Waiting for ganache to launch on port "$ganache_port"..."

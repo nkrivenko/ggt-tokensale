@@ -14,4 +14,39 @@
 The project contains three smart contracts:
 - The [BEP20](https://github.com/binance-chain/BEPs/blob/master/BEP20.md) GGT token
 - The [Band Protocol Price Feed](https://docs.binance.org/smart-chain/developer/oracle/band.html) client
-- The presale
+- The Presale smart contract
+
+## Presale functionality summary
+
+The presale contract can be paused only by owner. It has an opening date (any transaction before this date will be reverted), BNB hardcap and GGT distribution cap. Changeable bonus coefficient is implemented.
+
+## Token Pricing
+
+The GGT token price during the presale step should be calculated by the following formula:
+
+![GGT.BNB Formula](https://latex.codecogs.com/svg.image?GGT.BNB&space;=&space;bonusCoeff&space;*&space;\frac{BNB.BUSD}{GGT.BUSD})
+
+## How to launch or deploy
+
+First, install the dependencies:
+
+```
+$ npm install
+```
+
+The project provides some scripts:
+
+```
+$ npm test # truffle test
+$ npm run lint # runs solhint
+$ npm run deploy-testnet # runs migrations on testnet (see below on details)
+$ npm run coverage # runs solidity-coverage 
+```
+
+### Deploying the contracts to testnet
+
+To deploy the contract to testnet, the following should be done:
+
+1. Create `.bsc-testnet-secret` file with a testnet private key in it. This file is in `.gitignore` so it won't be commited.
+2. Launch the `npm run deploy-testnet` script
+3. After the testnet migrations are fulfilled, the contracts are available on the addresses printed to stdout.
