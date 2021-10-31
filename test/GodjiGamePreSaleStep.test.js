@@ -177,7 +177,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
                 await this.token.addMinter(this.crowdsale.address, { from: owner });
 
-                await this.crowdsale.send(CROWDSALE_CAP.sub(SINGLE_ETHER, { from: user })).should.be.fulfilled;
+                await this.crowdsale.send(SINGLE_ETHER, { from: user }).should.be.fulfilled;
             });
 
             it('should not accept a deposit if it overflows the BNB hardcap', async function () {
@@ -191,7 +191,6 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
                 await time.increaseTo(this.openTime);
 
                 const bnbsForCrowdsaleTokenCap = CROWDSALE_TOKEN_CAP.add(new BN(1)).mul(RATE).mul(SINGLE_ETHER).div(BNBBUSD);
-                console.log(`Tokens for cap:  ${bnbsForCrowdsaleTokenCap}`);
                 await expectRevert(this.crowdsale.send(bnbsForCrowdsaleTokenCap, { from: user }), "TokenCappedCrowdsale: token cap exceeded");
             });
         });
