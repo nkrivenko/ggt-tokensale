@@ -2,6 +2,7 @@ const GodjiGamePreSaleStep = artifacts.require("GodjiGamePreSaleStep");
 const ERC20 = artifacts.require("GGTToken");
 const Oracle = artifacts.require("BinanceOracleImpl");
 
+import { throwStatement } from "@babel/types";
 import { expectRevert, time, ether } from "@openzeppelin/test-helpers";
 
 const BN = web3.utils.BN;
@@ -95,8 +96,38 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
             SINGLE_ETHER.should.be.bignumber.equal(newBalance.sub(oldBalance));
         });
 
+        it('should revert if trying to set zero bonus coefficient', async function() {
+            await expectRevert(this.crowdsale.setBonusCoeff(new BN("0"), {from: owner}), "GodjiGamePreSaleStep: Bonus coeff is 0");
+        });
+
         it('should revert if trying to change the bonus coefficient not by owner', async function () {
             await expectRevert(this.crowdsale.setBonusCoeff(BONUS_COEFF_PERCENT.add(new BN("10"))), "Ownable: caller is not the owner");
+        });
+
+        it('should change the GGT.USD rate by owner', async function() {
+            await time.increaseTo(this.openTime);
+
+            const newRate = RATE.add(new BN("10"));
+            await this.crowdsale.setRate(newRate, { from: owner });
+
+            const oldBalance = new BN(await web3.eth.getBalance(fundingWallet));
+            await this.crowdsale.send(SINGLE_ETHER, { from: user });
+            const newBalance = new BN(await web3.eth.getBalance(fundingWallet));
+
+            const balanceOfUser = await this.token.balanceOf(user);
+
+            balanceOfUser.should.be.bignumber.equal(SINGLE_ETHER.mul(BNBBUSD).mul(BONUS_COEFF_PERCENT).div(newRate).div(SINGLE_ETHER).div(new BN(100)));
+            SINGLE_ETHER.should.be.bignumber.equal(newBalance.sub(oldBalance));
+
+            newRate.should.be.bignumber.equal(await this.crowdsale.rate());
+        });
+
+        it('should revert if trying to set zero GGT.USD rate', async function() {
+            await expectRevert(this.crowdsale.setRate(new BN("0"), {from: owner}), "GodjiGamePreSaleStep: GGT.BUSD is 0");
+        });
+
+        it('should revert if trying to change the GGT.USD rate not by owner', async function() {
+            await expectRevert(this.crowdsale.setRate(RATE.add(new BN("10"))), "Ownable: caller is not the owner");
         });
     });
 
