@@ -64,6 +64,10 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
         uint256 bnbbusd = _binanceOracle.getPrice();
 
+        // We check allowlist here as we need to use 
+        // the same price for check and token amount calcualtion
+        // _checkTokens(_msgSender(), weiAmount, bnbbusd);
+
         return weiAmount.mul(bnbbusd).mul(_bonusCoeffPercent).div(ONE_HUNDRED_PERCENT)
             .div(_ggtBusdRate).div(BNBBUSD_DECIMALS);
     }
