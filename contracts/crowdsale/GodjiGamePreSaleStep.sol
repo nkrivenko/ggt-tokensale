@@ -8,11 +8,12 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OnlyOwnerPausableCrowdsale.sol";
 import "./OpeningTimeCrowdsale.sol";
 import "./TokenCappedCrowdsale.sol";
+import "./BusdThresholdAllowlistCrowdsale.sol";
 import "../price/BinanceOracle.sol";
 
 
 contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrowdsale,
-    OpeningTimeCrowdsale, TokenCappedCrowdsale, CappedCrowdsale {
+    OpeningTimeCrowdsale, BusdThresholdAllowlistCrowdsale, TokenCappedCrowdsale, CappedCrowdsale {
 
     using SafeMath for uint256;
 
@@ -28,8 +29,8 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     event RateChanged(address indexed changer, uint256 newRate);
 
     constructor(uint256 rate, address payable wallet, IERC20 token, address owner_, BinanceOracle binanceOracle,
-        uint256 bonusCoeffPercent_, uint256 startTimeUnix, uint256 cap_, uint256 tokenCap_) public 
-        OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix)
+        uint256 bonusCoeffPercent_, uint256 startTimeUnix, uint256 cap_, uint256 tokenCap_, uint256 busdThreshold_) public 
+        OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix) BusdThresholdAllowlistCrowdsale(busdThreshold_, owner_)
         CappedCrowdsale(cap_) TokenCappedCrowdsale(tokenCap_) Crowdsale(rate, wallet, token) {
 
         require(bonusCoeffPercent_ > 0, "GodjiGamePreSaleStep: bonusCoeffPercent must be positive number");
@@ -66,7 +67,7 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
         // We check allowlist here as we need to use 
         // the same price for check and token amount calcualtion
-        // _checkTokens(_msgSender(), weiAmount, bnbbusd);
+        _checkTokens(_msgSender(), weiAmount, bnbbusd);
 
         return weiAmount.mul(bnbbusd).mul(_bonusCoeffPercent).div(ONE_HUNDRED_PERCENT)
             .div(_ggtBusdRate).div(BNBBUSD_DECIMALS);

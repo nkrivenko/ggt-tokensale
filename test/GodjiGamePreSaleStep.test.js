@@ -2,7 +2,6 @@ const GodjiGamePreSaleStep = artifacts.require("GodjiGamePreSaleStep");
 const ERC20 = artifacts.require("GGTToken");
 const Oracle = artifacts.require("BinanceOracleImpl");
 
-import { throwStatement } from "@babel/types";
 import { expectRevert, time, ether } from "@openzeppelin/test-helpers";
 
 const BN = web3.utils.BN;
@@ -16,7 +15,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
     const RATE = new BN("100");
     const wallet = fundingWallet;
-    const BNBBUSD = ether('522');
+    const BNBBUSD = ether('500');
     const SINGLE_ETHER = ether('1');
     const BONUS_COEFF_PERCENT = new BN("120");
 
@@ -26,6 +25,8 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
     const CROWDSALE_CAP = ether('1000');
     const CROWDSALE_TOKEN_CAP = ether('2610');
+
+    const BNBBUSD_THRESHOLD = ether('10000');
 
     before(async function () {
         await time.advanceBlock();
@@ -37,7 +38,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
         this.oracle = await Oracle.new(BNBBUSD);
         this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner,
-            this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP);
+            this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP, BNBBUSD_THRESHOLD);
 
         this.token = await ERC20.at(await this.crowdsale.token());
 
@@ -60,7 +61,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
         it('should revert if trying to create the token with zero bonus coefficient', async function () {
             await expectRevert(GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner, this.oracle.address,
-                new BN("0"), this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP),
+                new BN("0"), this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP, BNBBUSD_THRESHOLD),
                 "GodjiGamePreSaleStep: bonusCoeffPercent must be positive number");
         });
     });
@@ -186,6 +187,39 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         });
     });
 
+    describe('Sums above threshold should be accepted only if sender is whitelisted', function () {
+        it("should accept any payment below threshold", async function() {
+            await time.increaseTo(this.openTime);
+            const paymentBelowThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).sub(new BN("1"));
+    
+            const oldBalance = new BN(await web3.eth.getBalance(wallet));
+            await this.crowdsale.send(paymentBelowThreshold, { from: user });
+            const newBalance = new BN(await web3.eth.getBalance(wallet));
+    
+            paymentBelowThreshold.should.be.bignumber.equal(newBalance.sub(oldBalance));
+        });
+    
+        it("should accept the payment above the threshold if payer is in allowlist", async function() {
+            await time.increaseTo(this.openTime);
+            await this.crowdsale.addWhitelisted(user, { from: owner });
+    
+            const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
+    
+            const oldBalance = new BN(await web3.eth.getBalance(wallet));
+            await this.crowdsale.send(paymentAboveThreshold, { from: user });
+            const newBalance = new BN(await web3.eth.getBalance(wallet));
+    
+            paymentAboveThreshold.should.be.bignumber.equal(newBalance.sub(oldBalance));
+        });
+    
+        it("should revert the payment above the threshold if payer is not in allowlist", async function() {
+            await time.increaseTo(this.openTime);
+            const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
+
+            await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
+        });
+    });
+
     describe('Boundaries should be respected', function () {
         describe('Time boundary should be respected', function () {
             it('should accept a deposit if after or at the crowdsale open time', async function () {
@@ -195,6 +229,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
             });
 
             it('should not accept a deposit if before the crowdsale open time', async function () {
+                await this.crowdsale.addWhitelisted(user, { from: owner });
                 await expectRevert(this.crowdsale.send(SINGLE_ETHER, { from: user }), "OpeningTimeCrowdsale: opening time hasn't come");
             });
         });
@@ -204,7 +239,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
                 await time.increaseTo(this.openTime);
 
                 this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner,
-                    this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP.mul(new BN("100")));
+                    this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP.mul(new BN("100")), BNBBUSD_THRESHOLD);
 
                 await this.token.addMinter(this.crowdsale.address, { from: owner });
 
@@ -220,6 +255,8 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         describe('GGT distribution hardcap boundary should be respected', function () {
             it('should not accept a deposit if it overflows the GGT distribution hardcap', async function () {
                 await time.increaseTo(this.openTime);
+
+                await this.crowdsale.addWhitelisted(user, { from: owner });
 
                 const bnbsForCrowdsaleTokenCap = CROWDSALE_TOKEN_CAP.add(new BN(1)).mul(RATE).mul(SINGLE_ETHER).div(BNBBUSD);
                 await expectRevert(this.crowdsale.send(bnbsForCrowdsaleTokenCap, { from: user }), "TokenCappedCrowdsale: token cap exceeded");

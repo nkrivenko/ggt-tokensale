@@ -20,8 +20,11 @@ contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, Crowdsale {
 
         _busdThreshold = busdThreshold_;
 
-        _addWhitelistAdmin(owner);
-        _removeWhitelistAdmin(_msgSender());
+        address sender = _msgSender();
+        if (sender != owner) {
+            _addWhitelistAdmin(owner);
+            _removeWhitelistAdmin(sender);
+        }
     }
 
     function busdThreshold() public view returns (uint256) {
