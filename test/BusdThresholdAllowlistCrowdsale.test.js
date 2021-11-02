@@ -40,7 +40,7 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
         RATE.should.be.bignumber.equal(await this.crowdsale.rate());
         wallet.should.be.equal(await this.crowdsale.wallet());
         this.token.address.should.be.equal(await this.crowdsale.token());
-        BNBBUSD_THRESHOLD.should.be.bignumber.equal(await this.crowdsale.bnbThreshold());
+        BNBBUSD_THRESHOLD.should.be.bignumber.equal(await this.crowdsale.busdThreshold());
     });
 
     it("should accept any payment below threshold", async function() {

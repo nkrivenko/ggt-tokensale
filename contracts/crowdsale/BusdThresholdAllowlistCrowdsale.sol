@@ -11,26 +11,27 @@ import "../price/BinanceOracle.sol";
  */
 contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, Crowdsale {
 
-    uint256 private _bnbThreshold;
+    uint256 private constant BUSD_DECIMALS = 10 ** 18;
+    uint256 private _busdThreshold;
 
-    constructor (uint256 bnbThreshold_, address owner) internal {
-        require(bnbThreshold_ > 0, "BusdThresholdAllowlistCrowdsale: bnbThreshold is 0");
+    constructor (uint256 busdThreshold_, address owner) internal {
+        require(busdThreshold_ > 0, "BusdThresholdAllowlistCrowdsale: bnbThreshold is 0");
         require(owner != address(0), "BusdThresholdAllowlistCrowdsale: owner is 0");
 
-        _bnbThreshold = bnbThreshold_;
+        _busdThreshold = busdThreshold_;
 
         _addWhitelistAdmin(owner);
         _removeWhitelistAdmin(_msgSender());
     }
 
-    function bnbThreshold() public view returns (uint256) {
-        return _bnbThreshold;
+    function busdThreshold() public view returns (uint256) {
+        return _busdThreshold;
     }
 
     function _checkTokens(address beneficiary, uint256 weiAmount, uint256 bnbbusdRate) internal view {
-        uint256 busd = weiAmount.mul(bnbbusdRate).div(10 ** 18);
+        uint256 busd = weiAmount.mul(bnbbusdRate).div(BUSD_DECIMALS);
 
-        if (busd >= _bnbThreshold) {
+        if (busd >= _busdThreshold) {
             require(isWhitelisted(beneficiary), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
         }
     }
