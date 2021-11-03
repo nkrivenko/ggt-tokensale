@@ -26,7 +26,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
     const CROWDSALE_CAP = ether('1000');
     const CROWDSALE_TOKEN_CAP = ether('2610');
 
-    const BNBBUSD_THRESHOLD = ether('10000');
+    const BNBBUSD_THRESHOLD = ether('100');
 
     before(async function () {
         await time.advanceBlock();
@@ -43,6 +43,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         this.token = await ERC20.at(await this.crowdsale.token());
 
         await this.token.addMinter(this.crowdsale.address, { from: owner });
+        await this.crowdsale.addWhitelisted(user, { from: owner });
     });
 
     describe('Contract creation', function () {
@@ -187,23 +188,18 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         });
     });
 
-    describe('Sums above threshold should be accepted only if sender is whitelisted', function () {
-        it("should accept any payment below threshold", async function() {
+    describe('Payments should be accepted only if above threshold and sender is whitelisted', function () {
+        it("should reject any payment below threshold", async function() {
             await time.increaseTo(this.openTime);
-            const paymentBelowThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).sub(new BN("1"));
+            const paymentBelowThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).sub(new BN("1"));
     
-            const oldBalance = new BN(await web3.eth.getBalance(wallet));
-            await this.crowdsale.send(paymentBelowThreshold, { from: user });
-            const newBalance = new BN(await web3.eth.getBalance(wallet));
-    
-            paymentBelowThreshold.should.be.bignumber.equal(newBalance.sub(oldBalance));
+            await expectRevert(this.crowdsale.send(paymentBelowThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: payment is below threshold");
         });
     
         it("should accept the payment above the threshold if payer is in allowlist", async function() {
             await time.increaseTo(this.openTime);
-            await this.crowdsale.addWhitelisted(user, { from: owner });
-    
-            const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
+
+            const paymentAboveThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).add(new BN("1"));
     
             const oldBalance = new BN(await web3.eth.getBalance(wallet));
             await this.crowdsale.send(paymentAboveThreshold, { from: user });
@@ -214,9 +210,13 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
     
         it("should revert the payment above the threshold if payer is not in allowlist", async function() {
             await time.increaseTo(this.openTime);
-            const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
+            const paymentAboveThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).add(new BN("1"));
 
-            await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
+            await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: funder }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
+        });
+
+        it("should revert if trying to add whitelisted role for user without whitelistadmin role", async function() {
+            await expectRevert(this.crowdsale.addWhitelisted(funder, {from: user}), "WhitelistAdminRole: caller does not have the WhitelistAdmin role");
         });
     });
 
@@ -229,7 +229,6 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
             });
 
             it('should not accept a deposit if before the crowdsale open time', async function () {
-                await this.crowdsale.addWhitelisted(user, { from: owner });
                 await expectRevert(this.crowdsale.send(SINGLE_ETHER, { from: user }), "OpeningTimeCrowdsale: opening time hasn't come");
             });
         });
@@ -242,6 +241,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
                     this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP.mul(new BN("100")), BNBBUSD_THRESHOLD);
 
                 await this.token.addMinter(this.crowdsale.address, { from: owner });
+                await this.crowdsale.addWhitelisted(user, { from: owner });
 
                 await this.crowdsale.send(SINGLE_ETHER, { from: user }).should.be.fulfilled;
             });
@@ -255,8 +255,6 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         describe('GGT distribution hardcap boundary should be respected', function () {
             it('should not accept a deposit if it overflows the GGT distribution hardcap', async function () {
                 await time.increaseTo(this.openTime);
-
-                await this.crowdsale.addWhitelisted(user, { from: owner });
 
                 const bnbsForCrowdsaleTokenCap = CROWDSALE_TOKEN_CAP.add(new BN(1)).mul(RATE).mul(SINGLE_ETHER).div(BNBBUSD);
                 await expectRevert(this.crowdsale.send(bnbsForCrowdsaleTokenCap, { from: user }), "TokenCappedCrowdsale: token cap exceeded");

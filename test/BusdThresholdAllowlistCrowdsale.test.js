@@ -31,6 +31,7 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
         this.token = await ERC20.at(await this.crowdsale.token());
 
         await this.token.addMinter(this.crowdsale.address, { from: owner });
+        await this.crowdsale.addWhitelisted(user, { from: owner });
     });
 
     it("should create the contract with provided parameters", async function() {
@@ -43,19 +44,13 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
         BNBBUSD_THRESHOLD.should.be.bignumber.equal(await this.crowdsale.busdThreshold());
     });
 
-    it("should accept any payment below threshold", async function() {
+    it("should reject any payment below threshold", async function() {
         const paymentBelowThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).sub(new BN("1"));
 
-        const oldBalance = new BN(await web3.eth.getBalance(wallet));
-        await this.crowdsale.send(paymentBelowThreshold, { from: user });
-        const newBalance = new BN(await web3.eth.getBalance(wallet));
-
-        paymentBelowThreshold.should.be.bignumber.equal(newBalance.sub(oldBalance));
+        await expectRevert(this.crowdsale.send(paymentBelowThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: payment is below threshold");
     });
 
     it("should accept the payment above the threshold if payer is in allowlist", async function() {
-        await this.crowdsale.addWhitelisted(user, { from: owner });
-
         const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
 
         const oldBalance = new BN(await web3.eth.getBalance(wallet));
@@ -68,6 +63,10 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
     it("should revert the payment above the threshold if payer is not in allowlist", async function() {
         const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
 
-        await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
+        await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: wallet }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
+    });
+
+    it("should revert if trying to add whitelisted role for user without whitelistadmin role", async function() {
+        await expectRevert(this.crowdsale.addWhitelisted(funder, {from: user}), "WhitelistAdminRole: caller does not have the WhitelistAdmin role");
     });
 });

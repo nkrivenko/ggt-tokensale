@@ -34,8 +34,7 @@ contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, Crowdsale {
     function _checkTokens(address beneficiary, uint256 weiAmount, uint256 bnbbusdRate) internal view {
         uint256 busd = weiAmount.mul(bnbbusdRate).div(BUSD_DECIMALS);
 
-        if (busd >= _busdThreshold) {
-            require(isWhitelisted(beneficiary), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
-        }
+        require(_busdThreshold <= busd, "BusdThresholdAllowlistCrowdsale: payment is below threshold");
+        require(isWhitelisted(beneficiary), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
     }
 }
