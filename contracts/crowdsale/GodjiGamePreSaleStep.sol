@@ -29,8 +29,10 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     event RateChanged(address indexed changer, uint256 newRate);
 
     constructor(uint256 rate, address payable wallet, IERC20 token, address owner_, BinanceOracle binanceOracle,
-        uint256 bonusCoeffPercent_, uint256 startTimeUnix, uint256 cap_, uint256 tokenCap_, uint256 busdThreshold_) public 
-        OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix) BusdThresholdAllowlistCrowdsale(busdThreshold_, owner_)
+        uint256 bonusCoeffPercent_, uint256 startTimeUnix, uint256 cap_,
+        uint256 tokenCap_, uint256 busdThreshold_) public 
+        OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix) 
+        BusdThresholdAllowlistCrowdsale(busdThreshold_, owner_)
         CappedCrowdsale(cap_) TokenCappedCrowdsale(tokenCap_) Crowdsale(rate, wallet, token) {
 
         require(bonusCoeffPercent_ > 0, "GodjiGamePreSaleStep: bonusCoeffPercent must be positive number");
