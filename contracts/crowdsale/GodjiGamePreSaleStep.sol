@@ -63,7 +63,8 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
         uint256 remaining = weiRaised() - cap();
         uint256 threshold = busdThreshold();
 
-        require(remaining < threshold || threshold <= busd, "BusdThresholdAllowlistCrowdsale: payment is below threshold");
+        require(remaining < threshold || threshold <= busd, 
+            "BusdThresholdAllowlistCrowdsale: payment is below threshold");
     }
 
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
