@@ -17,11 +17,11 @@ contract("BusdCappedCrowdsale", function ([_, owner, user]) {
     const TOKEN_SYMBOL = "GGT";
     const TOKEN_CAP = ether("50000000");
 
-    const BNBBUSD = ether('500');
+    const BNBBUSD = ether('1000');
     const BUSD_CAP = ether('10000');
 
-    const LESS_THAN_CAP_IN_BNB = ether('16');
-    const CAP_IN_BNB = ether('20');
+    const LESS_THAN_CAP_IN_BNB = ether('8');
+    const CAP_IN_BNB = ether('10');
 
     beforeEach(async function () {
         this.wallet = (await web3.eth.accounts.create()).address;
@@ -30,7 +30,7 @@ contract("BusdCappedCrowdsale", function ([_, owner, user]) {
     });
 
     it('should revert if cap is zero', async function() {
-        await expectRevert(BusdCappedCrowdsale.new(RATE, this.wallet, this.token.address, 0, this.oracle.address), "BusdCappedCrowdsale, cap is 0");
+        await expectRevert(BusdCappedCrowdsale.new(RATE, this.wallet, this.token.address, 0, this.oracle.address), "BusdCappedCrowdsale: cap is 0");
     });
 
     context('with crowdsale', function() {

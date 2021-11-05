@@ -13,7 +13,7 @@ contract BusdCappedCrowdsale is Crowdsale {
     uint256 private _busdCap;
 
     constructor (uint256 busdCap, BinanceOracle oracle) internal {
-        require(busdCap > 0, "BusdCappedCrowdsale, cap is 0");
+        require(busdCap > 0, "BusdCappedCrowdsale: cap is 0");
 
         _oracle = oracle;
         _busdCap = busdCap;

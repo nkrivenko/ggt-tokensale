@@ -11,22 +11,22 @@ require('chai')
     .use(require('chai-bn')(BN))
     .should();
 
-contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, wallet]) {
+contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, thirdUser, wallet]) {
 
     const RATE = new BN("100");
-    const BNBBUSD = ether('500');
+    const BNBBUSD = ether('1000');
     const SINGLE_ETHER = ether('1');
 
     const TOKEN_NAME = "Godji Game Token";
     const TOKEN_SYMBOL = "GGT";
     const TOKEN_CAP = ether("50000000");
 
-    const CROWDSALE_BUSD_CAP = ether('250000');
-    const CROWDSALE_BNB_CAP = ether('250000').mul(SINGLE_ETHER).div(BNBBUSD);
+    const CROWDSALE_BUSD_CAP = ether('25000');
+    const CROWDSALE_BNB_CAP = CROWDSALE_BUSD_CAP.mul(SINGLE_ETHER).div(BNBBUSD);
 
     const LESS_THAN_CAP_IN_BNB = CROWDSALE_BNB_CAP.muln(4).divn(5);
 
-    const BNBBUSD_THRESHOLD = ether('10000');
+    const BNBBUSD_THRESHOLD = ether('1000');
     const BNBBUSD_BNB_THRESHOLD = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD);
 
     before(async function () {
@@ -69,6 +69,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, wa
             await this.token.addMinter(this.crowdsale.address, { from: owner });
             await this.crowdsale.addWhitelisted(user, { from: owner });
             await this.crowdsale.addWhitelisted(anotherUser, { from: owner });
+            await this.crowdsale.addWhitelisted(thirdUser, { from: owner });
         });
 
         describe('Receive BNBs and transfer tokens', function () {
@@ -113,7 +114,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, wa
             });
 
             it('should revert if trying to change the GGT.USD rate not by owner', async function () {
-                await expectRevert(this.crowdsale.setRate(RATE.add(new BN("10"))), "Ownable: caller is not the owner");
+                await expectRevert(this.crowdsale.setRate(RATE.addn(10)), "Ownable: caller is not the owner");
             });
         });
 
@@ -192,8 +193,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, wa
             it("should accept the payment above the threshold if payer is in allowlist", async function () {
                 await time.increaseTo(this.openTime);
 
-                const paymentAboveThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).add(new BN("1"));
-
+                const paymentAboveThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).addn(1);
 
                 const oldBalance = new BN(await web3.eth.getBalance(this.wallet));
                 await this.crowdsale.send(paymentAboveThreshold, { from: anotherUser });
@@ -259,7 +259,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, wa
             it('should call finalize if called by owner and crowdsale BUSD hardcap reached', async function () {
                 await time.increaseTo(this.openTime);
 
-                await this.crowdsale.send(CROWDSALE_BNB_CAP, { from: user });
+                await this.crowdsale.send(CROWDSALE_BNB_CAP, { from: thirdUser });
 
                 await this.crowdsale.finalizeCrowdsale({ from: owner });
                 (await this.token.isMinter(this.crowdsale.address)).should.be.false;
@@ -274,7 +274,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, wa
             it('should revert if finalize called not by owner', async function () {
                 await time.increaseTo(this.openTime);
 
-                await this.crowdsale.send(CROWDSALE_BNB_CAP, { from: user });
+                await this.crowdsale.send(CROWDSALE_BNB_CAP, { from: anotherUser });
                 await expectRevert(this.crowdsale.finalizeCrowdsale(), "Ownable: caller is not the owner");
             });
         });
