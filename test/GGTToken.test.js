@@ -13,13 +13,12 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
 
 	const NAME = "Godji Game Token";
 	const SYMBOL = "GGT";
-    const DECIMALS = new BN(18);
+    const DECIMALS = new BN("18");
 
     const TOKENS_TO_MINT = ether("1");
-    const CAP = ether("50000000");
 
 	beforeEach(async function() {
-		this.token = await GGTErc20Token.new(NAME, SYMBOL, CAP, owner);
+		this.token = await GGTErc20Token.new(NAME, SYMBOL, owner);
 	});
 
 	it('should create token with parameters provided', async function() {
@@ -28,7 +27,6 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
 		NAME.should.be.equal(await this.token.name());
 		SYMBOL.should.be.equal(await this.token.symbol());
         DECIMALS.should.be.bignumber.equal(await this.token.decimals());
-        CAP.should.be.bignumber.equal(await this.token.cap());
         owner.should.be.equal(await this.token.getOwner());
 	});
 
@@ -48,16 +46,6 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
     
         it('should revert if `mint` is called not by MINTER or owner', async function() {
             await expectRevert(this.token.mint(user, TOKENS_TO_MINT, {from: user}), "GGTToken: only MINTER or owner can call this method");
-        });
-
-        it('should mint tokens if totalSupply will not exceed the cap', async function() {
-            await this.token.mint(user, CAP, {from: owner}).should.be.fulfilled;
-
-            CAP.should.be.bignumber.equal(await this.token.balanceOf(user));
-        });
-
-        it('should not mint tokens if totalSupply will exceed the cap', async function() {
-            await expectRevert(this.token.mint(user, CAP.add(new BN(1)), {from: owner}), "ERC20Capped: cap exceeded");
         });
     });
 
