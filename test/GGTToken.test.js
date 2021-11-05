@@ -71,7 +71,7 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
         });
 
         it('should not mint tokens if totalSupply will exceed the cap', async function() {
-            await expectRevert(this.token.mint(user, CAP.add(new BN(1)), {from: owner}), "ERC20Capped: cap exceeded");
+            await expectRevert(this.token.mint(user, CAP.addn(1), {from: owner}), "ERC20Capped: cap exceeded");
         });
     });
 

@@ -3,8 +3,6 @@ pragma experimental ABIEncoderV2;
 
 
 interface IStdReference {
-
-
     struct ReferenceData {
         uint256 rate;
         uint256 lastUpdatedBase;

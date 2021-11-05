@@ -2,18 +2,18 @@
 pragma solidity 0.5.17;
 
 import "@openzeppelin/contracts/crowdsale/emission/MintedCrowdsale.sol";
-import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OnlyOwnerPausableCrowdsale.sol";
 import "./OpeningTimeCrowdsale.sol";
 import "./BusdThresholdAllowlistCrowdsale.sol";
+import "./BusdCappedCrowdsale.sol";
 import "../price/BinanceOracle.sol";
 import "../token/GGTToken.sol";
 
 
 contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrowdsale,
-    OpeningTimeCrowdsale, BusdThresholdAllowlistCrowdsale, CappedCrowdsale {
+    OpeningTimeCrowdsale, BusdThresholdAllowlistCrowdsale, BusdCappedCrowdsale {
 
     using SafeMath for uint256;
 
@@ -29,7 +29,7 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
         uint256 startTimeUnix, uint256 cap_, uint256 busdThreshold_) public 
         OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix) 
         BusdThresholdAllowlistCrowdsale(busdThreshold_, owner_)
-        CappedCrowdsale(cap_) Crowdsale(rate, wallet, token) {
+        BusdCappedCrowdsale(cap_, binanceOracle) Crowdsale(rate, wallet, token) {
 
         _binanceOracle = binanceOracle;
         _ggtBusdRate = rate;
@@ -58,13 +58,13 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     function _checkTokens(address beneficiary, uint256 weiAmount, uint256 bnbbusdRate) internal view {
         require(isWhitelisted(beneficiary), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
 
-        uint256 busd = weiAmount.mul(bnbbusdRate).div(BNBBUSD_DECIMALS);
+        uint256 weiAmountInBusd = _getBusdFromBnb(weiAmount, bnbbusdRate);
 
-        uint256 remaining = cap() - weiRaised();
+        uint256 remaining = cap() - _getBusdFromBnb(weiRaised().add(weiAmount), bnbbusdRate);
         uint256 threshold = busdThreshold();
 
-        require(remaining < threshold || threshold <= busd, 
-            "BusdThresholdAllowlistCrowdsale: payment is below threshold");
+        require(remaining < threshold || threshold <= weiAmountInBusd, 
+            "GodjiGamePreSaleStep: payment is below threshold");
     }
 
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
@@ -72,8 +72,13 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
         // We check allowlist here as we need to use 
         // the same price for check and token amount calcualtion
+        _checkBusdCap(_msgSender(), weiAmount, bnbbusd);
         _checkTokens(_msgSender(), weiAmount, bnbbusd);
 
-        return weiAmount.mul(bnbbusd).div(_ggtBusdRate).div(BNBBUSD_DECIMALS);
+        return _getBusdFromBnb(weiAmount, bnbbusd).div(_ggtBusdRate);
+    }
+
+    function _getBusdFromBnb(uint256 weiAmount, uint256 bnbbusdRate) private pure returns(uint256) {
+        return weiAmount.mul(bnbbusdRate).div(BNBBUSD_DECIMALS);
     }
 }

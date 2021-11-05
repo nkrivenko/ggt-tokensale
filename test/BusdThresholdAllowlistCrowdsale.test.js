@@ -45,13 +45,13 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
     });
 
     it("should reject any payment below threshold", async function() {
-        const paymentBelowThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).sub(new BN("1"));
+        const paymentBelowThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).subn(1);
 
         await expectRevert(this.crowdsale.send(paymentBelowThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: payment is below threshold");
     });
 
     it("should accept the payment above the threshold if payer is in allowlist", async function() {
-        const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
+        const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).addn(1);
 
         const oldBalance = new BN(await web3.eth.getBalance(wallet));
         await this.crowdsale.send(paymentAboveThreshold, { from: user });
@@ -61,7 +61,7 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
     });
 
     it("should revert the payment above the threshold if payer is not in allowlist", async function() {
-        const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).add(new BN("1"));
+        const paymentAboveThreshold = BNBBUSD_THRESHOLD.div(BNBBUSD).mul(SINGLE_ETHER).addn(1);
 
         await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: wallet }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
     });
