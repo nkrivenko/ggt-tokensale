@@ -19,6 +19,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser]) {
 
     const TOKEN_NAME = "Godji Game Token";
     const TOKEN_SYMBOL = "GGT";
+    const TOKEN_CAP = ether("50000000");
 
     const CROWDSALE_CAP = ether('10');
 
@@ -31,7 +32,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser]) {
     beforeEach(async function () {
         this.openTime = (await time.latest()).add(time.duration.hours(1));
 
-        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, owner);
+        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
         this.oracle = await Oracle.new(BNBBUSD);
         this.wallet = (await web3.eth.accounts.create()).address;
         this.crowdsale = await GodjiGamePreSaleStep.new(RATE, this.wallet, this.token.address, owner,
@@ -165,7 +166,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser]) {
         
         it("should accept any payment below threshold if remaining amount is smaller than threshold", async function() {
             await time.increaseTo(this.openTime);
-            const paymentBelowThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).add(new BN("1"));
+            const paymentBelowThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).sub(new BN("1"));
 
             const crowdsale = await GodjiGamePreSaleStep.new(RATE, this.wallet, this.token.address, owner,
                 this.oracle.address, this.openTime, CROWDSALE_CAP, BNBBUSD_THRESHOLD);

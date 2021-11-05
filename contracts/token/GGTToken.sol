@@ -4,16 +4,18 @@ pragma solidity 0.5.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 
-contract GGTToken is ERC20Detailed, ERC20Mintable {
+contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Burnable, ERC20Capped {
 
     uint8 private constant DECIMALS = 18;
 
     address private _owner;
+    bool private _mintingFinished = false;
 
-    constructor(string memory name, string memory symbol, address owner_) public
-        ERC20Detailed(name, symbol, DECIMALS) ERC20Mintable() {
+    constructor(string memory name, string memory symbol, uint256 cap_, address owner_) public
+        ERC20Detailed(name, symbol, DECIMALS) ERC20Capped(cap_) ERC20Mintable() ERC20Burnable() {
         _owner = owner_;
     }
 
@@ -23,7 +25,7 @@ contract GGTToken is ERC20Detailed, ERC20Mintable {
     }
 
     modifier onlyMinterOrOwner() {
-        address sender = _msgSender();
+        address sender = msg.sender;
         require(sender == _owner || isMinter(sender), "GGTToken: only MINTER or owner can call this method");
         _;
     }
@@ -33,6 +35,8 @@ contract GGTToken is ERC20Detailed, ERC20Mintable {
     }
 
     function mint(address account, uint256 amount) public onlyMinterOrOwner returns (bool) {
+        require(!_mintingFinished, "GGTToken: minting finished");
+
         _mint(account, amount);
         return true;
     }
@@ -48,7 +52,14 @@ contract GGTToken is ERC20Detailed, ERC20Mintable {
         _removeMinter(account);
     }
 
+    event Debug(address indexed sender, bool isMinter);
+
     function renounceMinter() public {
         super.renounceMinter();
+    }
+
+    function finishMinting() public onlyMinterOrOwner {
+        require(!_mintingFinished, "GGTToken: minting finished");
+        _mintingFinished = true;
     }
 }
