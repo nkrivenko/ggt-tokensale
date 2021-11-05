@@ -9,8 +9,6 @@ require('chai')
 
 const { expectRevert, ether } = require('@openzeppelin/test-helpers');
 
-const itParam = require('mocha-param');
-
 contract('GGTToken', function([ funder, owner, minter, user ]) {
 
 	const NAME = "Godji Game Token";
@@ -21,7 +19,7 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
     const CAP = ether("50000000");
 
 	beforeEach(async function() {
-		this.token = await GGTErc20Token.new(NAME, SYMBOL, CAP, owner);
+		this.token = await GGTToken.new(NAME, SYMBOL, CAP, owner);
         await this.token.addMinter(minter, {from: owner});
 	});
 
@@ -64,7 +62,7 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
             await this.token.finishMinting({from: minter}).should.be.fulfilled;
 
             await expectRevert(this.token.finishMinting({from: minter}), "GGTToken: minting finished");
-        }));
+        });
 
         it('should mint tokens if totalSupply will not exceed the cap', async function() {
             await this.token.mint(user, CAP, {from: owner}).should.be.fulfilled;
