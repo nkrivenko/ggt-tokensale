@@ -1,13 +1,15 @@
 const BN = web3.utils.BN;
 
-const GGTErc20Token = artifacts.require('GGTToken');
+const GGTToken = artifacts.require('GGTToken');
 
 require('chai')
   .use(require('chai-as-promised'))
   .use(require('chai-bn')(BN))
   .should();
 
-const { singletons, expectRevert, ether } = require('@openzeppelin/test-helpers');
+const { expectRevert, ether } = require('@openzeppelin/test-helpers');
+
+const itParam = require('mocha-param');
 
 contract('GGTToken', function([ funder, owner, minter, user ]) {
 
@@ -18,7 +20,8 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
     const TOKENS_TO_MINT = ether("1");
 
 	beforeEach(async function() {
-		this.token = await GGTErc20Token.new(NAME, SYMBOL, owner);
+		this.token = await GGTToken.new(NAME, SYMBOL, owner);
+        await this.token.addMinter(minter, {from: owner});
 	});
 
 	it('should create token with parameters provided', async function() {
@@ -32,7 +35,6 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
 
     describe('should mint tokens', function() {
         it('should issue tokens if `mint` is called by MINTER', async function() {
-            await this.token.addMinter(minter, {from: owner});
             await this.token.mint(user, TOKENS_TO_MINT, {from: minter});
     
             (await this.token.balanceOf(user)).should.be.bignumber.equal(TOKENS_TO_MINT);
@@ -46,6 +48,20 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
     
         it('should revert if `mint` is called not by MINTER or owner', async function() {
             await expectRevert(this.token.mint(user, TOKENS_TO_MINT, {from: user}), "GGTToken: only MINTER or owner can call this method");
+        });
+
+        [minter, owner].forEach(currentAddress => it('should finish minting by minter or owner', async function() {
+            await this.token.mint(user, TOKENS_TO_MINT, {from: currentAddress}).should.be.fulfilled;
+
+            await this.token.finishMinting({from: currentAddress});
+
+            await expectRevert(this.token.mint(user, TOKENS_TO_MINT, {from: currentAddress}), "GGTToken: minting finished");
+        }));
+
+        it('should revert when `finishMinting` called and minting already finished', async function() {
+            await this.token.finishMinting({from: minter}).should.be.fulfilled;
+
+            await expectRevert(this.token.finishMinting({from: minter}), "GGTToken: minting finished");
         });
     });
 
@@ -82,6 +98,10 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
 
         it('should revert when trying to call removeMinter with non-minter address', async function() {
             await expectRevert(this.token.removeMinter(user, {from: owner}), "GGTToken: Specified address is not a minter");
+        });
+
+        it('should revert if `mint` is called by non-minter-or-owner', async function() {
+            await expectRevert(this.token.finishMinting({from: user}), "GGTToken: only MINTER or owner can call this method");
         });
     });
 });

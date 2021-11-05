@@ -11,6 +11,7 @@ contract GGTToken is ERC20Detailed, ERC20Mintable {
     uint8 private constant DECIMALS = 18;
 
     address private _owner;
+    bool private _mintingFinished = false;
 
     constructor(string memory name, string memory symbol, address owner_) public
         ERC20Detailed(name, symbol, DECIMALS) ERC20Mintable() {
@@ -33,6 +34,8 @@ contract GGTToken is ERC20Detailed, ERC20Mintable {
     }
 
     function mint(address account, uint256 amount) public onlyMinterOrOwner returns (bool) {
+        require(!_mintingFinished, "GGTToken: minting finished");
+
         _mint(account, amount);
         return true;
     }
@@ -50,5 +53,10 @@ contract GGTToken is ERC20Detailed, ERC20Mintable {
 
     function renounceMinter() public {
         super.renounceMinter();
+    }
+
+    function finishMinting() public onlyMinterOrOwner {
+        require(!_mintingFinished, "GGTToken: minting finished");
+        _mintingFinished = true;
     }
 }
