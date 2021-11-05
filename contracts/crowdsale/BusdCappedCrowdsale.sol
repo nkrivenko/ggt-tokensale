@@ -1,8 +1,8 @@
 pragma solidity 0.5.17;
 
-
 import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "../price/BinanceOracle.sol";
+
 
 contract BusdCappedCrowdsale is Crowdsale {
     using SafeMath for uint256;
@@ -35,6 +35,7 @@ contract BusdCappedCrowdsale is Crowdsale {
         return _oracle;
     }
 
+    //solhint-disable-next-line
     function _checkBusdCap(address beneficiary, uint256 weiAmount, uint256 busdRate) internal view {
         uint256 newBusdAmount = weiRaised().add(weiAmount).mul(busdRate).div(BNBBUSD_DECIMAL);
         require(newBusdAmount <= _busdCap, "BusdCappedCrowdsale: cap exceeded");

@@ -52,8 +52,6 @@ contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Burnable, ERC20Capped {
         _removeMinter(account);
     }
 
-    event Debug(address indexed sender, bool isMinter);
-
     function renounceMinter() public {
         super.renounceMinter();
     }
