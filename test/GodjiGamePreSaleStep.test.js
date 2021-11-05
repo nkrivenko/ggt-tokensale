@@ -2,7 +2,6 @@ const GodjiGamePreSaleStep = artifacts.require("GodjiGamePreSaleStep");
 const ERC20 = artifacts.require("GGTToken");
 const Oracle = artifacts.require("BinanceOracleImpl");
 
-import { throwStatement } from "@babel/types";
 import { expectRevert, time, ether } from "@openzeppelin/test-helpers";
 
 const BN = web3.utils.BN;
@@ -16,7 +15,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
     const RATE = new BN("100");
     const wallet = fundingWallet;
-    const BNBBUSD = ether('522');
+    const BNBBUSD = ether('500');
     const SINGLE_ETHER = ether('1');
     const BONUS_COEFF_PERCENT = new BN("120");
 
@@ -26,6 +25,8 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
     const CROWDSALE_CAP = ether('1000');
     const CROWDSALE_TOKEN_CAP = ether('2610');
+
+    const BNBBUSD_THRESHOLD = ether('100');
 
     before(async function () {
         await time.advanceBlock();
@@ -37,11 +38,12 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
         this.oracle = await Oracle.new(BNBBUSD);
         this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner,
-            this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP);
+            this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP, BNBBUSD_THRESHOLD);
 
         this.token = await ERC20.at(await this.crowdsale.token());
 
         await this.token.addMinter(this.crowdsale.address, { from: owner });
+        await this.crowdsale.addWhitelisted(user, { from: owner });
     });
 
     describe('Contract creation', function () {
@@ -60,7 +62,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
 
         it('should revert if trying to create the token with zero bonus coefficient', async function () {
             await expectRevert(GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner, this.oracle.address,
-                new BN("0"), this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP),
+                new BN("0"), this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP, BNBBUSD_THRESHOLD),
                 "GodjiGamePreSaleStep: bonusCoeffPercent must be positive number");
         });
     });
@@ -186,6 +188,38 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
         });
     });
 
+    describe('Payments should be accepted only if above threshold and sender is whitelisted', function () {
+        it("should reject any payment below threshold", async function() {
+            await time.increaseTo(this.openTime);
+            const paymentBelowThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).sub(new BN("1"));
+    
+            await expectRevert(this.crowdsale.send(paymentBelowThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: payment is below threshold");
+        });
+    
+        it("should accept the payment above the threshold if payer is in allowlist", async function() {
+            await time.increaseTo(this.openTime);
+
+            const paymentAboveThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).add(new BN("1"));
+    
+            const oldBalance = new BN(await web3.eth.getBalance(wallet));
+            await this.crowdsale.send(paymentAboveThreshold, { from: user });
+            const newBalance = new BN(await web3.eth.getBalance(wallet));
+    
+            paymentAboveThreshold.should.be.bignumber.equal(newBalance.sub(oldBalance));
+        });
+    
+        it("should revert the payment above the threshold if payer is not in allowlist", async function() {
+            await time.increaseTo(this.openTime);
+            const paymentAboveThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).add(new BN("1"));
+
+            await expectRevert(this.crowdsale.send(paymentAboveThreshold, { from: funder }), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
+        });
+
+        it("should revert if trying to add whitelisted role for user without whitelistadmin role", async function() {
+            await expectRevert(this.crowdsale.addWhitelisted(funder, {from: user}), "WhitelistAdminRole: caller does not have the WhitelistAdmin role");
+        });
+    });
+
     describe('Boundaries should be respected', function () {
         describe('Time boundary should be respected', function () {
             it('should accept a deposit if after or at the crowdsale open time', async function () {
@@ -204,9 +238,10 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, fundingWallet])
                 await time.increaseTo(this.openTime);
 
                 this.crowdsale = await GodjiGamePreSaleStep.new(RATE, wallet, this.token.address, owner,
-                    this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP.mul(new BN("100")));
+                    this.oracle.address, BONUS_COEFF_PERCENT, this.openTime, CROWDSALE_CAP, CROWDSALE_TOKEN_CAP.mul(new BN("100")), BNBBUSD_THRESHOLD);
 
                 await this.token.addMinter(this.crowdsale.address, { from: owner });
+                await this.crowdsale.addWhitelisted(user, { from: owner });
 
                 await this.crowdsale.send(SINGLE_ETHER, { from: user }).should.be.fulfilled;
             });
