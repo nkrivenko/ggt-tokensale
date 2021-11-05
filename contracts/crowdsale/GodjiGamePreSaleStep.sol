@@ -60,7 +60,8 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
         uint256 busd = weiAmount.mul(bnbbusdRate).div(BNBBUSD_DECIMALS);
 
-        uint256 remaining = weiRaised() - cap();
+        uint256 weiRaised = weiRaised();
+        uint256 cap = cap();
         uint256 threshold = busdThreshold();
 
         require(remaining < threshold || threshold <= busd, 

@@ -16,6 +16,7 @@ contract("OpeningTimeCrowdsaleImpl", function ([funder, owner, user, fundingWall
 
     const NAME = "Godji Game Token";
 	const SYMBOL = "GGT";
+    const CAP = ether("50000000");
 
     const SINGLE_ETHER = ether('1');
 
@@ -26,7 +27,7 @@ contract("OpeningTimeCrowdsaleImpl", function ([funder, owner, user, fundingWall
     beforeEach(async function() {
         this.openTime = (await time.latest()).add(time.duration.hours(1));
 
-        this.token = await ERC20.new(NAME, SYMBOL, owner);
+        this.token = await ERC20.new(NAME, SYMBOL, CAP, owner);
         this.crowdsale = await OpeningTimeCrowdsaleImpl.new(RATE, fundingWallet, this.token.address, this.openTime);
         this.token = await ERC20.at(await this.crowdsale.token());
 
