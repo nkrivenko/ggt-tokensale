@@ -8,7 +8,7 @@
     "ci-test": "./.circleci/start_dev_node_and_run_tests.sh test",
     "test": "./node_modules/.bin/truffle test",
     "coverage": "./node_modules/.bin/truffle run coverage --network development --solcoverjs ./.solcover.js",
-    "deploy-testnet": "./node_modules/.bin/truffle migrate --network testnet",
+    "deploy-testnet": "./node_modules/.bin/truffle migrate --network testnet --reset",
     "lint": "./node_modules/.bin/solhint -f table contracts/**/*.sol"
   },
   "repository": {

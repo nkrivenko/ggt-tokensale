@@ -16,18 +16,19 @@ module.exports = {
       network_id: "*",
       gas: 4698712,
       gasPrice: 25000000000,
-      defaultBalanceEther: 10000
+      defaultBalanceEther: 1000000
     },
 
     testnet: {
       provider: () => new HDWalletProvider({
-        providerOrUrl: `https://data-seed-prebsc-1-s1.binance.org:8545`,
+        providerOrUrl: `https://data-seed-prebsc-1-s2.binance.org:8545/`,
         privateKeys: [privateKey]
       }),
       network_id: 97,
       confirmations: 10,
       timeoutBlocks: 200,
-      skipDryRun: true
+      skipDryRun: true,
+      networkCheckTimeout: 99999999
     }
   },
 
