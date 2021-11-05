@@ -23,7 +23,7 @@ contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped {
     }
 
     modifier onlyMinterOrOwner() {
-        address sender = _msgSender();
+        address sender = msg.sender;
         require(sender == _owner || isMinter(sender), "GGTToken: only MINTER or owner can call this method");
         _;
     }
@@ -44,6 +44,13 @@ contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped {
 
     function removeMinter(address account) public onlyOwner {
         require(isMinter(account), "GGTToken: Specified address is not a minter");
+
         _removeMinter(account);
+    }
+
+    event Debug(address indexed sender, bool isMinter);
+
+    function renounceMinter() public {
+        super.renounceMinter();
     }
 }
