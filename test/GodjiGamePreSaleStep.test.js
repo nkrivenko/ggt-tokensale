@@ -36,7 +36,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, th
     })
 
     beforeEach(async function () {
-        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
+        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, {from: owner});
         this.oracle = await Oracle.new(BNBBUSD);
     });
 
@@ -286,13 +286,18 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, th
             });
 
             it('should reject deposit if crowdsale is finished', async function() {
-                expect.fail('Not implemented yet');
-            });
-
-            it('should revert if finalize called by owner and crowdsale hardcaps not reached', async function () {
                 await time.increaseTo(this.openTime);
 
-                await expectRevert(this.crowdsale.finalizeCrowdsale({ from: owner }), "GodjiGamePreSaleStep: hardcaps are not reached");
+                await this.crowdsale.send(CROWDSALE_BNB_CAP, { from: thirdUser });
+                await this.crowdsale.finalizeCrowdsale({ from: owner });
+
+                await expectRevert(this.crowdsale.send(CROWDSALE_BNB_DELTA.divn(2), { from: thirdUser }), "GodjiGamePreSaleStep: crowdsale finished");
+            });
+
+            it('should revert if finalize called by owner and crowdsale hardcap not reached', async function () {
+                await time.increaseTo(this.openTime);
+
+                await expectRevert(this.crowdsale.finalizeCrowdsale({ from: owner }), "GodjiGamePreSaleStep: hardcap not reached");
             });
 
             it('should revert if finalize called not by owner', async function () {

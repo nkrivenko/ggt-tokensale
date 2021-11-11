@@ -11,7 +11,7 @@ require('chai')
   .use(require('chai-bn')(BN))
   .should();
 
-contract("BusdCappedCrowdsale", function ([_, owner, user]) {
+contract("BusdCappedCrowdsale", function ([owner, user]) {
     const RATE = new BN("2");
     const TOKEN_NAME = "Godji Game Token";
     const TOKEN_SYMBOL = "GGT";
@@ -26,7 +26,7 @@ contract("BusdCappedCrowdsale", function ([_, owner, user]) {
     beforeEach(async function () {
         this.wallet = (await web3.eth.accounts.create()).address;
         this.oracle = await Oracle.new(BNBBUSD);
-        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
+        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, {from: owner});
     });
 
     it('should revert if cap is zero', async function() {

@@ -7,7 +7,7 @@ const { BN } = require('bn.js');
 
 module.exports = async function (deployer, network, accounts) {
     if (network !== "testnet") {
-        await deployer.deploy(Token, "Godji Game Token", "GGT", new BN(toWei(new BN(50_000_000), 'ether')), accounts[0], { from: accounts[0], overwrite: false });
+        await deployer.deploy(Token, "Godji Game Token", "GGT", new BN(toWei(new BN(50_000_000), 'ether')), { from: accounts[0], overwrite: false });
         await deployer.deploy(Oracle, '0xDA7a001b254CD22e46d3eAB04d937489c93174C3', { from: accounts[0], overwrite: false });
     }
 

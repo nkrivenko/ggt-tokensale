@@ -52,7 +52,7 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     }
 
     function finalizeCrowdsale() public onlyOwner {
-        require(capReached(), "GodjiGamePreSaleStep: hardcaps are not reached");
+        require(capReached(), "GodjiGamePreSaleStep: hardcap not reached");
 
         GGTToken(address(token())).renounceMinter();
         finalized = true;

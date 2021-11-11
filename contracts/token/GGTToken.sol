@@ -4,33 +4,31 @@ pragma solidity 0.5.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 
-contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped {
+contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped, Ownable {
 
     uint8 private constant DECIMALS = 18;
 
-    address private _owner;
     bool private _mintingFinished = false;
 
-    constructor(string memory name, string memory symbol, uint256 cap_, address owner_) public
+    constructor(string memory name, string memory symbol, uint256 cap_) public
         ERC20Detailed(name, symbol, DECIMALS) ERC20Capped(cap_) ERC20Mintable() {
-        _owner = owner_;
-    }
-
-    modifier onlyOwner() {
-        require(_msgSender() == _owner, "GGTToken: caller is not the owner");
-        _;
     }
 
     modifier onlyMinterOrOwner() {
         address sender = msg.sender;
-        require(sender == _owner || isMinter(sender), "GGTToken: only MINTER or owner can call this method");
+        address owner = owner();
+        require(sender == owner || isMinter(sender), "GGTToken: only MINTER or owner can call this method");
         _;
     }
 
+    /**
+     * @dev This function created for compatibility with BEP20 token
+     */
     function getOwner() external view returns (address) {
-        return _owner;
+        return owner();
     }
 
     function mint(address account, uint256 amount) public onlyMinterOrOwner returns (bool) {
