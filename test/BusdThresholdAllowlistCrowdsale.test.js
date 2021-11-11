@@ -17,6 +17,7 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
     const TOKEN_NAME = "Godji Game Token";
     const TOKEN_SYMBOL = "GGT";
     const TOKEN_CAP = ether("50000000");
+    const BUSD_CAP = ether('1000000');
 
     const BNBBUSD = ether('500');
     const BNBBUSD_THRESHOLD = ether('10000');
@@ -26,7 +27,7 @@ contract("BusdThresholdAllowlistCrowdsale", function ([funder, owner, user, wall
     beforeEach(async function () {
         this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, {from: owner});
         this.oracle = await Oracle.new(BNBBUSD);
-        this.crowdsale = await BnbThresholdAllowlistCrowdsale.new(RATE, wallet, this.token.address, this.oracle.address, BNBBUSD_THRESHOLD, owner);
+        this.crowdsale = await BnbThresholdAllowlistCrowdsale.new(RATE, wallet, this.token.address, this.oracle.address, BNBBUSD_THRESHOLD, owner, BUSD_CAP);
 
         this.token = await ERC20.at(await this.crowdsale.token());
 

@@ -22,6 +22,7 @@ contract("BusdCappedCrowdsale", function ([owner, user]) {
 
     const LESS_THAN_CAP_IN_BNB = ether('8');
     const CAP_IN_BNB = ether('10');
+    const DELTA = new BN("0");
 
     beforeEach(async function () {
         this.wallet = (await web3.eth.accounts.create()).address;
@@ -30,12 +31,12 @@ contract("BusdCappedCrowdsale", function ([owner, user]) {
     });
 
     it('should revert if cap is zero', async function() {
-        await expectRevert(BusdCappedCrowdsale.new(RATE, this.wallet, this.token.address, 0, this.oracle.address), "BusdCappedCrowdsale: cap is 0");
+        await expectRevert(BusdCappedCrowdsale.new(RATE, this.wallet, this.token.address, 0, this.oracle.address, DELTA), "BusdCappedCrowdsale: cap is 0");
     });
 
     context('with crowdsale', function() {
         beforeEach(async function() {
-            this.crowdsale = await BusdCappedCrowdsale.new(RATE, this.wallet, this.token.address, BUSD_CAP, this.oracle.address);
+            this.crowdsale = await BusdCappedCrowdsale.new(RATE, this.wallet, this.token.address, BUSD_CAP, this.oracle.address, DELTA);
 
             this.token = await ERC20.at(await this.crowdsale.token());
 
@@ -50,6 +51,7 @@ contract("BusdCappedCrowdsale", function ([owner, user]) {
             RATE.should.be.bignumber.equal(await this.crowdsale.rate());
             this.wallet.should.be.equal(await this.crowdsale.wallet());
             BUSD_CAP.should.be.bignumber.equal(await this.crowdsale.cap());
+            DELTA.should.be.bignumber.equal(await this.crowdsale.acceptableDelta());
         });
 
         it('should return remaining BUSDs', async function() {

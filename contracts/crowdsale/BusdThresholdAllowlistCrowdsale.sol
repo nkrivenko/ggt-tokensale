@@ -1,17 +1,16 @@
 pragma solidity 0.5.17;
 
 import "@openzeppelin/contracts/access/roles/WhitelistedRole.sol";
-import "@openzeppelin/contracts/crowdsale/Crowdsale.sol";
 import "../price/BinanceOracle.sol";
+import "./BusdCappedCrowdsale.sol";
 
 
 /**
  * @title BnbThresholdAllowlistCrowdsale.
  * @dev Crowdsale where only allowlisted users can deposit BNBs more than threshold
  */
-contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, Crowdsale {
+contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, BusdCappedCrowdsale {
 
-    uint256 private constant BUSD_DECIMALS = 10 ** 18;
     uint256 private _busdThreshold;
 
     constructor (uint256 busdThreshold_, address owner) internal {
@@ -31,10 +30,13 @@ contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, Crowdsale {
         return _busdThreshold;
     }
 
-    function _checkTokens(address beneficiary, uint256 weiAmount, uint256 bnbbusdRate) internal view {
-        uint256 busd = weiAmount.mul(bnbbusdRate).div(BUSD_DECIMALS);
+    function _validateBusdPurchase(address beneficiary, uint256 weiAmount, uint256 bnbbusdRate) internal view {
+        super._validateBusdPurchase(beneficiary, weiAmount, bnbbusdRate);
 
-        require(_busdThreshold <= busd, "BusdThresholdAllowlistCrowdsale: payment is below threshold");
+        uint256 busd = weiAmount.mul(bnbbusdRate).div(BUSD_DECIMALS);
+        uint256 remaining = capWithAcceptableDelta().sub(_getBusdFromBnb(weiRaised().add(weiAmount), bnbbusdRate));
+
+        require(_busdThreshold <= busd || remaining < _busdThreshold, "BusdThresholdAllowlistCrowdsale: payment is below threshold");
         require(isWhitelisted(beneficiary), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
     }
 }

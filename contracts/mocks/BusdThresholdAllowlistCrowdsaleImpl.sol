@@ -14,8 +14,8 @@ contract BusdThresholdAllowlistCrowdsaleImpl is BusdThresholdAllowlistCrowdsale,
     BinanceOracle private _oracle;
 
     constructor (uint256 rate, address payable wallet, IERC20 token, BinanceOracle oracle,
-        uint256 bnbThreshold, address owner) public
-        BusdThresholdAllowlistCrowdsale(bnbThreshold, owner) Crowdsale(rate, wallet, token) {
+        uint256 bnbThreshold, address owner, uint256 busdCap) public
+        BusdThresholdAllowlistCrowdsale(bnbThreshold, owner) BusdCappedCrowdsale(busdCap, oracle, 0) Crowdsale(rate, wallet, token) {
         _oracle = oracle;
     }
 
@@ -24,7 +24,7 @@ contract BusdThresholdAllowlistCrowdsaleImpl is BusdThresholdAllowlistCrowdsale,
 
         // We check allowlist here as we need to use 
         // the same price for check and token amount calcualtion
-        _checkTokens(_msgSender(), weiAmount, bnbbusd);
+        super._validateBusdPurchase(_msgSender(), weiAmount, bnbbusd);
 
         return weiAmount.mul(bnbbusd).div(ONE_HUNDRED_PERCENT)
             .div(rate()).div(BNBBUSD_DECIMALS);

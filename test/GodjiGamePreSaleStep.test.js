@@ -180,7 +180,7 @@ contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, th
                 await time.increaseTo(this.openTime);
                 const paymentBelowThreshold = BNBBUSD_THRESHOLD.mul(SINGLE_ETHER).div(BNBBUSD).subn(1);
 
-                await expectRevert(this.crowdsale.send(paymentBelowThreshold, { from: user }), "GodjiGamePreSaleStep: payment is below threshold");
+                await expectRevert(this.crowdsale.send(paymentBelowThreshold, { from: user }), "BusdThresholdAllowlistCrowdsale: payment is below threshold");
             });
 
             it("should accept any payment below threshold if remaining amount is smaller than threshold", async function () {
