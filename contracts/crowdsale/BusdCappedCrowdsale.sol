@@ -35,7 +35,7 @@ contract BusdCappedCrowdsale is Crowdsale {
 
         uint256 busdRaised = weiRaised().mul(currentPrice).div(BNBBUSD_DECIMAL);
 
-        return _busdCap < busdRaised ? _busdCap.sub(busdRaised) : 0;
+        return _busdCap >= busdRaised ? _busdCap.sub(busdRaised) : 0;
     }
 
     function acceptableDelta() public view returns (uint256) {

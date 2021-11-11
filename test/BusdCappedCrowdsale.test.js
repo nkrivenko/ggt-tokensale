@@ -52,6 +52,15 @@ contract("BusdCappedCrowdsale", function ([owner, user]) {
             BUSD_CAP.should.be.bignumber.equal(await this.crowdsale.cap());
         });
 
+        it('should return remaining BUSDs', async function() {
+            const sumToSend = ether('2');
+
+            await this.crowdsale.send(sumToSend, {from: owner});
+
+            const remaining = await this.crowdsale.busdRemaining();
+            BUSD_CAP.sub(sumToSend.mul(BNBBUSD).div(ether('1'))).should.be.bignumber.equal(remaining);
+        });
+
         describe('accepting payments', function() {
             [LESS_THAN_CAP_IN_BNB, CAP_IN_BNB].forEach(bnbsToSend => it('should accept deposits if less or equal to BUSD cap', async function() {
                 await this.crowdsale.send(bnbsToSend, { from: user });
