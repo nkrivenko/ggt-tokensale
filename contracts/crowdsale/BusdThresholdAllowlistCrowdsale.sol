@@ -36,7 +36,10 @@ contract BusdThresholdAllowlistCrowdsale is WhitelistedRole, BusdCappedCrowdsale
         uint256 busd = weiAmount.mul(bnbbusdRate).div(BUSD_DECIMALS);
         uint256 remaining = capWithAcceptableDelta().sub(_getBusdFromBnb(weiRaised().add(weiAmount), bnbbusdRate));
 
-        require(_busdThreshold <= busd || remaining < _busdThreshold, "BusdThresholdAllowlistCrowdsale: payment is below threshold");
+        require(
+            _busdThreshold <= busd || remaining < _busdThreshold, 
+            "BusdThresholdAllowlistCrowdsale: payment is below threshold"
+        );
         require(isWhitelisted(beneficiary), "BusdThresholdAllowlistCrowdsale: address is not allowlisted");
     }
 }

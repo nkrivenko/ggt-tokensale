@@ -15,7 +15,8 @@ contract BusdThresholdAllowlistCrowdsaleImpl is BusdThresholdAllowlistCrowdsale,
 
     constructor (uint256 rate, address payable wallet, IERC20 token, BinanceOracle oracle,
         uint256 bnbThreshold, address owner, uint256 busdCap) public
-        BusdThresholdAllowlistCrowdsale(bnbThreshold, owner) BusdCappedCrowdsale(busdCap, oracle, 0) Crowdsale(rate, wallet, token) {
+        BusdThresholdAllowlistCrowdsale(bnbThreshold, owner) BusdCappedCrowdsale(busdCap, oracle, 0)
+        Crowdsale(rate, wallet, token) {
         _oracle = oracle;
     }
 

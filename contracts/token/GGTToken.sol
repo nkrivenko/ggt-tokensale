@@ -13,6 +13,7 @@ contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped, Ownable {
 
     bool private _mintingFinished = false;
 
+    /* solhint-disable no-empty-blocks */
     constructor(string memory name, string memory symbol, uint256 cap_) public
         ERC20Detailed(name, symbol, DECIMALS) ERC20Capped(cap_) ERC20Mintable() {
     }
@@ -20,7 +21,7 @@ contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped, Ownable {
     modifier onlyMinterOrOwner() {
         address sender = msg.sender;
         address owner = owner();
-        require(sender == owner || isMinter(sender), "GGTToken: only MINTER or owner can call this method");
+        require(sender == owner || isMinter(sender), "GGTToken: caller is not MINTER or owner");
         _;
     }
 
