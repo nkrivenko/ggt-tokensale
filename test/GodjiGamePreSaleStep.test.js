@@ -14,18 +14,18 @@ require('chai')
 contract("GodjiGamePreSaleStep", function ([funder, owner, user, anotherUser, thirdUser, wallet]) {
 
     const RATE = new BN("1000000");
-    const BNBBUSD = ether('1000');
+    const BNBBUSD = ether('2000');
     const SINGLE_ETHER = ether('1');
 
     const TOKEN_NAME = "Godji Game Token";
     const TOKEN_SYMBOL = "GGT";
     const TOKEN_CAP = ether("50000000");
 
-    const CROWDSALE_BUSD_CAP = ether('25000');
+    const CROWDSALE_BUSD_CAP = ether('14000');
     const CROWDSALE_BNB_CAP = CROWDSALE_BUSD_CAP.mul(SINGLE_ETHER).div(BNBBUSD);
 
     const LESS_THAN_CAP_IN_BNB = CROWDSALE_BNB_CAP.muln(4).divn(5);
-    const CROWDSALE_BUSD_DELTA = ether('600');
+    const CROWDSALE_BUSD_DELTA = ether('200');
     const CROWDSALE_BNB_DELTA = CROWDSALE_BUSD_DELTA.mul(SINGLE_ETHER).div(BNBBUSD);
 
     const BNBBUSD_THRESHOLD = ether('1000');
