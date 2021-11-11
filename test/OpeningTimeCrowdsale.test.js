@@ -10,7 +10,7 @@ require('chai')
   .use(require('chai-bn')(BN))
   .should();
 
-contract("OpeningTimeCrowdsaleImpl", function ([funder, owner, user, fundingWallet]) {
+contract("OpeningTimeCrowdsaleImpl", function ([owner, user, fundingWallet]) {
 
     const RATE = new BN("1");
 
@@ -27,7 +27,7 @@ contract("OpeningTimeCrowdsaleImpl", function ([funder, owner, user, fundingWall
     beforeEach(async function() {
         this.openTime = (await time.latest()).add(time.duration.hours(1));
 
-        this.token = await ERC20.new(NAME, SYMBOL, CAP, owner);
+        this.token = await ERC20.new(NAME, SYMBOL, CAP, {from: owner});
         this.crowdsale = await OpeningTimeCrowdsaleImpl.new(RATE, fundingWallet, this.token.address, this.openTime);
         this.token = await ERC20.at(await this.crowdsale.token());
 

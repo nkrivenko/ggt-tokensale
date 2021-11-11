@@ -11,7 +11,7 @@ require('chai')
   .use(require('chai-bn')(BN))
   .should();
 
-contract("BusdCappedCrowdsale", function ([_, owner, user]) {
+contract("BusdCappedCrowdsale", function ([owner, user]) {
     const RATE = new BN("2");
     const TOKEN_NAME = "Godji Game Token";
     const TOKEN_SYMBOL = "GGT";
@@ -26,7 +26,7 @@ contract("BusdCappedCrowdsale", function ([_, owner, user]) {
     beforeEach(async function () {
         this.wallet = (await web3.eth.accounts.create()).address;
         this.oracle = await Oracle.new(BNBBUSD);
-        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, owner);
+        this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, {from: owner});
     });
 
     it('should revert if cap is zero', async function() {
@@ -50,6 +50,15 @@ contract("BusdCappedCrowdsale", function ([_, owner, user]) {
             RATE.should.be.bignumber.equal(await this.crowdsale.rate());
             this.wallet.should.be.equal(await this.crowdsale.wallet());
             BUSD_CAP.should.be.bignumber.equal(await this.crowdsale.cap());
+        });
+
+        it('should return remaining BUSDs', async function() {
+            const sumToSend = ether('2');
+
+            await this.crowdsale.send(sumToSend, {from: owner});
+
+            const remaining = await this.crowdsale.busdRemaining();
+            BUSD_CAP.sub(sumToSend.mul(BNBBUSD).div(ether('1'))).should.be.bignumber.equal(remaining);
         });
 
         describe('accepting payments', function() {

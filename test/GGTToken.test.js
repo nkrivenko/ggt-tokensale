@@ -9,7 +9,7 @@ require('chai')
 
 const { expectRevert, ether } = require('@openzeppelin/test-helpers');
 
-contract('GGTToken', function([ funder, owner, minter, user ]) {
+contract('GGTToken', function([ owner, minter, user ]) {
 
 	const NAME = "Godji Game Token";
 	const SYMBOL = "GGT";
@@ -19,8 +19,8 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
     const CAP = ether("50000000");
 
 	beforeEach(async function() {
-		this.token = await GGTToken.new(NAME, SYMBOL, CAP, owner);
-        await this.token.addMinter(minter, {from: owner});
+		this.token = await GGTToken.new(NAME, SYMBOL, CAP);
+        await this.token.addMinter(minter);
 	});
 
 	it('should create token with parameters provided', async function() {
@@ -91,13 +91,13 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
         });
 
         it('should not grant MINTER role to the address if called not by owner', async function() {
-            await expectRevert(this.token.addMinter(user, {from: user}), "GGTToken: caller is not the owner");
+            await expectRevert(this.token.addMinter(user, {from: user}), "Ownable: caller is not the owner");
         });
 
         it('should not revoke MINTER role to the address if called not by owner', async function() {
             await this.token.addMinter(user, {from: owner});
 
-            await expectRevert(this.token.removeMinter(user, {from: user}), "GGTToken: caller is not the owner");
+            await expectRevert(this.token.removeMinter(user, {from: user}), "Ownable: caller is not the owner");
         });
 
         it('should revert when trying to call addMinter with minter address', async function() {
@@ -112,6 +112,16 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
 
         it('should revert if `mint` is called by non-minter-or-owner', async function() {
             await expectRevert(this.token.finishMinting({from: user}), "GGTToken: only MINTER or owner can call this method");
+        });
+
+        it('should allow to transfer ownership by owner', async function() {
+            await this.token.transferOwnership(user, {from: owner});
+
+            user.should.be.equal(await this.token.owner());
+        });
+
+        it('should revert if trying to transfer ownership by non-owner', async function() {
+            await expectRevert(this.token.transferOwnership(user, {from: user}), "Ownable: caller is not the owner");
         });
     });
 });
