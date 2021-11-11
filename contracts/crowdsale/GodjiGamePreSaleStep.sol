@@ -17,19 +17,21 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
     using SafeMath for uint256;
 
-    uint256 private constant BNBBUSD_DECIMALS = 10 ** 18;
+    uint256 private constant BNBBUSD_DECIMALS = 1 ether;
+    uint256 private constant GGTBUSD_DECIMAL = 10000;
 
     BinanceOracle private _binanceOracle;
 
     uint256 private _ggtBusdRate;
+    bool private finalized = false;
 
     event RateChanged(address indexed changer, uint256 newRate);
 
     constructor(uint256 rate, address payable wallet, ERC20Mintable token, address owner_, BinanceOracle binanceOracle,
-        uint256 startTimeUnix, uint256 cap_, uint256 busdThreshold_) public 
+        uint256 startTimeUnix, uint256 cap_, uint256 busdThreshold_, uint256 acceptableDelta) public 
         OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix) 
         BusdThresholdAllowlistCrowdsale(busdThreshold_, owner_)
-        BusdCappedCrowdsale(cap_, binanceOracle) Crowdsale(rate, wallet, token) {
+        BusdCappedCrowdsale(cap_, binanceOracle, acceptableDelta) Crowdsale(rate, wallet, token) {
 
         _binanceOracle = binanceOracle;
         _ggtBusdRate = rate;
@@ -53,6 +55,7 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
         require(capReached(), "GodjiGamePreSaleStep: hardcaps are not reached");
 
         GGTToken(address(token())).renounceMinter();
+        finalized = true;
     }
 
     function _checkTokens(address beneficiary, uint256 weiAmount, uint256 bnbbusdRate) internal view {
@@ -60,7 +63,7 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
         uint256 weiAmountInBusd = _getBusdFromBnb(weiAmount, bnbbusdRate);
 
-        uint256 remaining = cap() - _getBusdFromBnb(weiRaised().add(weiAmount), bnbbusdRate);
+        uint256 remaining = capWithAcceptableDelta().sub(_getBusdFromBnb(weiRaised().add(weiAmount), bnbbusdRate));
         uint256 threshold = busdThreshold();
 
         require(remaining < threshold || threshold <= weiAmountInBusd, 
@@ -70,15 +73,22 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {
         uint256 bnbbusd = _binanceOracle.getPrice();
 
+        address sender = _msgSender();
+
         // We check allowlist here as we need to use 
         // the same price for check and token amount calcualtion
-        _checkBusdCap(_msgSender(), weiAmount, bnbbusd);
-        _checkTokens(_msgSender(), weiAmount, bnbbusd);
+        _checkBusdCap(sender, weiAmount, bnbbusd);
+        _checkTokens(sender, weiAmount, bnbbusd);
 
-        return _getBusdFromBnb(weiAmount, bnbbusd).div(_ggtBusdRate);
+        return _getBusdFromBnb(weiAmount, bnbbusd).div(_ggtBusdRate).mul(GGTBUSD_DECIMAL);
     }
 
     function _getBusdFromBnb(uint256 weiAmount, uint256 bnbbusdRate) private pure returns(uint256) {
         return weiAmount.mul(bnbbusdRate).div(BNBBUSD_DECIMALS);
+    }
+
+    function _preValidatePurchase(address beneficiary, uint256 weiAmount) internal view {
+        require(!finalized, "GodjiGamePreSaleStep: crowdsale finished");
+        super._preValidatePurchase(beneficiary, weiAmount);
     }
 }

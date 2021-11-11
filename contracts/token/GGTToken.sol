@@ -4,10 +4,9 @@ pragma solidity 0.5.17;
 import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 
 
-contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Burnable, ERC20Capped {
+contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Capped {
 
     uint8 private constant DECIMALS = 18;
 
@@ -15,7 +14,7 @@ contract GGTToken is ERC20Detailed, ERC20Mintable, ERC20Burnable, ERC20Capped {
     bool private _mintingFinished = false;
 
     constructor(string memory name, string memory symbol, uint256 cap_, address owner_) public
-        ERC20Detailed(name, symbol, DECIMALS) ERC20Capped(cap_) ERC20Mintable() ERC20Burnable() {
+        ERC20Detailed(name, symbol, DECIMALS) ERC20Capped(cap_) ERC20Mintable() {
         _owner = owner_;
     }
 

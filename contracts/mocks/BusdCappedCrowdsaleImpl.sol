@@ -11,7 +11,7 @@ contract BusdCappedCrowdsaleImpl is BusdCappedCrowdsale, MintedCrowdsale {
 
     /* solhint-disable no-empty-blocks */
     constructor (uint256 rate, address payable wallet, IERC20 token, uint256 busdCap, BinanceOracle oracle) public
-        BusdCappedCrowdsale(busdCap, oracle) Crowdsale(rate, wallet, token) {
+        BusdCappedCrowdsale(busdCap, oracle, 0) Crowdsale(rate, wallet, token) {
     }
 
     function _getTokenAmount(uint256 weiAmount) internal view returns (uint256) {

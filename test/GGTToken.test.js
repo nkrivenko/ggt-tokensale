@@ -113,5 +113,13 @@ contract('GGTToken', function([ funder, owner, minter, user ]) {
         it('should revert if `mint` is called by non-minter-or-owner', async function() {
             await expectRevert(this.token.finishMinting({from: user}), "GGTToken: only MINTER or owner can call this method");
         });
+
+        it('should allow to trasfer ownership by owner', async function() {
+            expect.fail('Not implemented yet');
+        });
+
+        it('should revert if trying to trasfer ownership by non-owner', async function() {
+            expect.fail('Not implemented yet');
+        });
     });
 });
