@@ -83,12 +83,12 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
         return _getBusdFromBnb(weiAmount, bnbbusd).div(_ggtBusdRate).mul(GGTBUSD_DECIMAL);
     }
 
-    function _getBusdFromBnb(uint256 weiAmount, uint256 bnbbusdRate) private pure returns(uint256) {
-        return weiAmount.mul(bnbbusdRate).div(BNBBUSD_DECIMALS);
-    }
-
     function _preValidatePurchase(address beneficiary, uint256 weiAmount) internal view {
         require(!finalized, "GodjiGamePreSaleStep: crowdsale finished");
         super._preValidatePurchase(beneficiary, weiAmount);
+    }
+
+    function _getBusdFromBnb(uint256 weiAmount, uint256 bnbbusdRate) private pure returns(uint256) {
+        return weiAmount.mul(bnbbusdRate).div(BNBBUSD_DECIMALS);
     }
 }
