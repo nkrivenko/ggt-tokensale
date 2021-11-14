@@ -18,13 +18,19 @@ The project contains three smart contracts:
 
 ## Presale functionality summary
 
-The presale contract can be paused only by owner. It has an opening date (any transaction before this date will be reverted), BNB hardcap and GGT distribution cap. Changeable bonus coefficient is implemented.
+The main features are:
+
+- Presale has an opening date (any deposit to the contract before an opening date will be reverted)
+- BUSD hardcap supported (with a small acceptable delta above the hardcap)
+- GGT distribution hardcap is supported (No more than X GGT per address at current step)
+- Only whitelisted addresses can deposit BNBs
+- Minimal deposit amount supported
 
 ## Token Pricing
 
 The GGT token price during the presale step should be calculated by the following formula:
 
-![GGT.BNB Formula](https://latex.codecogs.com/svg.image?GGT.BNB&space;=&space;bonusCoeff&space;*&space;\frac{BNB.BUSD}{GGT.BUSD})
+![GGT.BNB Formula](https://latex.codecogs.com/svg.image?GGT.BNB&space;=&space;\frac{BNB.BUSD}{GGT.BUSD})
 
 ## How to launch or deploy
 
