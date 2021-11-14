@@ -5,12 +5,8 @@ import "@openzeppelin/contracts/crowdsale/validation/PausableCrowdsale.sol";
 
 
 contract OnlyOwnerPausableCrowdsale is PausableCrowdsale {
-    constructor (address owner_) internal {
-        address sender = _msgSender();
-        if (owner_ != sender) {
-            _addPauser(owner_);
-            _removePauser(sender);
-        }
+    constructor () internal {
+        // _addPauser(_msgSender());
     }
 
     // solhint-disable-next-line

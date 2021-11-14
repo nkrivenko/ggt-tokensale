@@ -1,13 +1,12 @@
 pragma solidity 0.5.17;
 
-import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../price/BinanceOracle.sol";
+import "./BusdCrowdsale.sol";
 
 
-contract BusdCappedCrowdsale is Crowdsale {
+contract BusdCappedCrowdsale is BusdCrowdsale {
     using SafeMath for uint256;
-
-    uint256 private constant BNBBUSD_DECIMAL = 1 ether;
 
     BinanceOracle private _oracle;
     uint256 private _busdCap;
@@ -25,7 +24,7 @@ contract BusdCappedCrowdsale is Crowdsale {
     function capReached() public view returns (bool) {
         uint256 currentPrice = _oracle.getPrice();
 
-        uint256 busdRaised = weiRaised().mul(currentPrice).div(BNBBUSD_DECIMAL);
+        uint256 busdRaised = weiRaised().mul(currentPrice).div(BUSD_DECIMALS);
 
         return busdRaised >= _busdCap;
     }
@@ -33,7 +32,7 @@ contract BusdCappedCrowdsale is Crowdsale {
     function busdRemaining() public view returns (uint256) {
         uint256 currentPrice = _oracle.getPrice();
 
-        uint256 busdRaised = weiRaised().mul(currentPrice).div(BNBBUSD_DECIMAL);
+        uint256 busdRaised = weiRaised().mul(currentPrice).div(BUSD_DECIMALS);
 
         return _busdCap >= busdRaised ? _busdCap.sub(busdRaised) : 0;
     }
@@ -54,9 +53,10 @@ contract BusdCappedCrowdsale is Crowdsale {
         return _oracle;
     }
 
-    //solhint-disable-next-line
-    function _checkBusdCap(address beneficiary, uint256 weiAmount, uint256 busdRate) internal view {
-        uint256 newBusdAmount = weiRaised().add(weiAmount).mul(busdRate).div(BNBBUSD_DECIMAL);
+    function _validateBusdPurchase(address beneficiary, uint256 weiAmount, uint256 busdRate) internal view {
+        super._validateBusdPurchase(beneficiary, weiAmount, busdRate);
+        
+        uint256 newBusdAmount = weiRaised().add(weiAmount).mul(busdRate).div(BUSD_DECIMALS);
         require(newBusdAmount <= _busdCap.add(_acceptableDelta), "BusdCappedCrowdsale: cap exceeded");
     }
 }

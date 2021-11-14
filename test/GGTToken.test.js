@@ -47,7 +47,7 @@ contract('GGTToken', function([ owner, minter, user ]) {
         });
     
         it('should revert if `mint` is called not by MINTER or owner', async function() {
-            await expectRevert(this.token.mint(user, TOKENS_TO_MINT, {from: user}), "GGTToken: only MINTER or owner can call this method");
+            await expectRevert(this.token.mint(user, TOKENS_TO_MINT, {from: user}), "GGTToken: caller is not MINTER or owner");
         });
 
         [minter, owner].forEach(currentAddress => it('should finish minting by minter or owner', async function() {
@@ -111,7 +111,7 @@ contract('GGTToken', function([ owner, minter, user ]) {
         });
 
         it('should revert if `mint` is called by non-minter-or-owner', async function() {
-            await expectRevert(this.token.finishMinting({from: user}), "GGTToken: only MINTER or owner can call this method");
+            await expectRevert(this.token.finishMinting({from: user}), "GGTToken: caller is not MINTER or owner");
         });
 
         it('should allow to transfer ownership by owner', async function() {
