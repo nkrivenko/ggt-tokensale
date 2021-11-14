@@ -16,6 +16,10 @@ contract IndividualTokenCapCrowdsale is Crowdsale {
         return _presaleTokenCap;
     }
 
+    function tokensRemaining(address beneficiary) public view returns (uint256) {
+        return _presaleTokenCap.sub(_contributions[beneficiary]);
+    }
+
     function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
         uint256 newTokenAmount = _contributions[beneficiary].add(tokenAmount);
         require(newTokenAmount <= _presaleTokenCap, "IndividualTokenCapCrowdsale: step token cap exceeded");

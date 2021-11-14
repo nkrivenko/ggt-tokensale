@@ -50,4 +50,16 @@ contract("IndividualTokenCapCrowdsaleImpl", function ([owner, user, wallet]) {
         await this.crowdsale.send(SINGLE_ETHER).should.be.fulfilled;
         await expectRevert(this.crowdsale.send(SINGLE_ETHER.addn(1)), "IndividualTokenCapCrowdsale: step token cap exceeded");
     });
+
+    it('should bound deposits per-address', async function() {
+        await this.crowdsale.send(SINGLE_ETHER.muln(2)).should.be.fulfilled;
+        await expectRevert(this.crowdsale.send(1), "IndividualTokenCapCrowdsale: step token cap exceeded");
+        await this.crowdsale.send(SINGLE_ETHER, {from: user}).should.be.fulfilled;
+    });
+
+    it('should return remaining tokens', async function() {
+        await this.crowdsale.send(SINGLE_ETHER).should.be.fulfilled;
+        
+        PRESALE_MAX_TOKENS_CAP.divn(2).should.be.bignumber.equal(await this.crowdsale.tokensRemaining(owner));
+    });
 });

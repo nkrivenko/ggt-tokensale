@@ -21,7 +21,9 @@ module.exports = async function (deployer, network, accounts) {
     const cap = new BN(toWei(new BN("400"), 'ether'));
     const busdThreshold = new BN(toWei(new BN("100"), 'ether'));
 
-    await deployer.deploy(GGTPreSale, new BN("10000"), accounts[0], token.address, accounts[0], oracle.address, openDate, cap, busdThreshold, busdThreshold.divn(2));
+    const tokenCap = new BN(toWei(new BN("50000"), 'ether'));
+
+    await deployer.deploy(GGTPreSale, new BN("10000"), accounts[0], token.address, oracle.address, openDate, cap, busdThreshold, busdThreshold.divn(2), tokenCap);
 
     const presale = await GGTPreSale.deployed();
     await token.addMinter(presale.address, { from: accounts[0] });

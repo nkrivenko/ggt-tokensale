@@ -7,12 +7,13 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OnlyOwnerPausableCrowdsale.sol";
 import "./OpeningTimeCrowdsale.sol";
 import "./BusdThresholdAllowlistCrowdsale.sol";
+import "./IndividualTokenCapCrowdsale.sol";
 import "../price/BinanceOracle.sol";
 import "../token/GGTToken.sol";
 
 
 contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrowdsale,
-    OpeningTimeCrowdsale, BusdThresholdAllowlistCrowdsale {
+    OpeningTimeCrowdsale, BusdThresholdAllowlistCrowdsale, IndividualTokenCapCrowdsale {
 
     using SafeMath for uint256;
 
@@ -26,16 +27,14 @@ contract GodjiGamePreSaleStep is Ownable, OnlyOwnerPausableCrowdsale, MintedCrow
 
     event RateChanged(address indexed changer, uint256 newRate);
 
-    constructor(uint256 rate, address payable wallet, ERC20Mintable token, address owner_, BinanceOracle binanceOracle,
-        uint256 startTimeUnix, uint256 cap_, uint256 busdThreshold_, uint256 acceptableDelta) public 
-        OnlyOwnerPausableCrowdsale(owner_) OpeningTimeCrowdsale(startTimeUnix) 
-        BusdThresholdAllowlistCrowdsale(busdThreshold_, owner_)
+    constructor(uint256 rate, address payable wallet, ERC20Mintable token, BinanceOracle binanceOracle,
+        uint256 startTimeUnix, uint256 cap_, uint256 busdThreshold_, uint256 acceptableDelta, uint256 tokenCap) public 
+        OnlyOwnerPausableCrowdsale() OpeningTimeCrowdsale(startTimeUnix) 
+        BusdThresholdAllowlistCrowdsale(busdThreshold_, _msgSender()) IndividualTokenCapCrowdsale(tokenCap)
         BusdCappedCrowdsale(cap_, binanceOracle, acceptableDelta) Crowdsale(rate, wallet, token) {
 
         _binanceOracle = binanceOracle;
         _ggtBusdRate = rate;
-
-        _transferOwnership(owner_);
     }
 
     function rate() public view returns (uint256) {

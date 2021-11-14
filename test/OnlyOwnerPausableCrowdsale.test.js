@@ -20,7 +20,7 @@ contract("OnlyOwnerPausableCrowdsale", function ([funder, owner, user, fundingWa
 
     beforeEach(async function() {
         this.token = await ERC20.new(TOKEN_NAME, TOKEN_SYMBOL, TOKEN_CAP, {from: owner});
-        this.crowdsale = await OnlyOwnerPausableCrowdsale.new(RATE, fundingWallet, this.token.address, owner);
+        this.crowdsale = await OnlyOwnerPausableCrowdsale.new(RATE, fundingWallet, this.token.address, {from: owner});
 
         await this.token.addMinter(this.crowdsale.address, { from: owner });
     });
