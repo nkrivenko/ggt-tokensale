@@ -21,7 +21,7 @@ module.exports = {
 
     testnet: {
       provider: () => new HDWalletProvider({
-        providerOrUrl: `https://data-seed-prebsc-1-s3.binance.org:8545/`,
+        providerOrUrl: `https://data-seed-prebsc-2-s2.binance.org:8545/`,
         privateKeys: [privateKey]
       }),
       network_id: 97,
