@@ -5,6 +5,7 @@ const HDWalletProvider = require('@truffle/hdwallet-provider');
 const fs = require('fs')
 
 const privateKey = fs.existsSync('.bsc-testnet-secret') ? fs.readFileSync('.bsc-testnet-secret').toString().trim() : null;
+const privateKeyMainnet = fs.existsSync('.bsc-mainnet-secret') ? fs.readFileSync('.bsc-mainnet-secret').toString().trim() : null;
 
 module.exports = {
 
@@ -29,6 +30,17 @@ module.exports = {
       timeoutBlocks: 200,
       skipDryRun: true,
       networkCheckTimeout: 99999999
+    },
+
+    mainnet: {
+      provider: () => new HDWalletProvider({
+        providerOrUrl: `https://bsc-dataseed1.binance.org`,
+        privateKeys: [privateKeyMainnet]
+      }),
+      network_id: 56,
+      confirmations: 10,
+      timeoutBlocks: 200,
+      skipDryRun: true
     }
   },
 
