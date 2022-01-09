@@ -2,6 +2,8 @@
 
 [![CircleCI](https://circleci.com/gh/nkrivenko/ggt-tokensale/tree/master.svg?style=svg)](https://circleci.com/gh/nkrivenko/ggt-tokensale/tree/master)
 [![codecov](https://codecov.io/gh/nkrivenko/ggt-tokensale/branch/master/graph/badge.svg?token=NE1FEJV34A)](https://codecov.io/gh/nkrivenko/ggt-tokensale)
+[![Tokensale address](https://img.shields.io/badge/Tokensale-0x237fC99FBf667801c34CC7ea516140594986677D-informational)](https://bscscan.com/address/0x237fc99fbf667801c34cc7ea516140594986677d)
+[![Token address](https://img.shields.io/badge/GGT%20Token-0xa3F2dbb571F2Ce4d78c07fe483623D9CbE64491B-informational)](https://bscscan.com/address/0xa3f2dbb571f2ce4d78c07fe483623d9cbe64491b)
 
 ## Key dependencies
 
